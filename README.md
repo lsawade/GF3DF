@@ -1,4 +1,4 @@
-
+# Fortran bindings to read GF3D produced Subset files
 
 Make sure the `HDF5_ROOT` variable is set.
 ```bash
@@ -11,6 +11,11 @@ export HDF5_ROOT=/path/to/hdf5
 Then, you can build the package using
 
 ```bash
+cd /path/to/gf3df/
 cmake -S . -B build
 cmake --build build
 ```
+
+For using the modules in your own package add `/path/to/gf3df/build/include` to
+your compilation and in fortran you should be able to just `use gf3d`.
+

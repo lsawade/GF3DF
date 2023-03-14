@@ -12,17 +12,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ./lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ./archive)
 
 # Set binary output
-set(BINARY_DIR ./bin)
+set (CMAKE_BINARY_DIR ./bin)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # For this make sure that the environment variable HDF5_ROOT is set!
 find_package(HDF5 REQUIRED)
 find_package(HDF5 COMPONENTS Fortran HL)
 
-# Set library directories
-link_directories (
-    ${HDF5_LIBRARIES}
-    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-)
 
 # Set include directories
 include_directories(
