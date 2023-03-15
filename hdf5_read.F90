@@ -2,7 +2,6 @@
 program open_file
 
   use hdf5
-!   include 'hdf5_fortran'
   use hdf5_utils
 
   implicit none
