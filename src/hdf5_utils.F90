@@ -1,23 +1,157 @@
 module hdf5_utils
 
   use hdf5
-  use iso_c_binding, only:c_loc
+  use iso_c_binding, only:c_loc, c_ptr
   implicit none
 
   private
-  public :: read_from_hdf5
+  public :: read_from_hdf5, get_dset_dims, get_dset_rank
 
 
   interface read_from_hdf5
      module procedure &
-          read_integer, &
-!          read_integer_longlong, &
+          get_dset_rank, &
+          get_dset_dims, &
+          read_real4_array_2d, &
           read_real8, &
-          read_integer_array_1d
+          read_real8_array_1d, &
+          read_integer, &
+          read_integer_array_1d, &
+          read_integer_array_2d, &
+          read_integer_array_4d, &
+          read_integer_long_array_4d, &
+          read_integer_long, &
+          read_real_array_2d, &
+          read_real_array_5d
   end interface read_from_hdf5
 
 
 contains
+
+    subroutine get_dset_rank(file_id, name, rank, got, errorflag)
+
+    ! Inputs
+    integer(hid_t), intent(in)           :: file_id
+    character(*),   intent(in)           :: name
+
+    ! Outputs
+    integer, intent(out)                 :: rank
+    logical, intent(out)                 :: got
+    integer, intent(out)                 :: errorflag
+
+    ! Local
+    integer(hid_t)                       :: dset_id, dspace_id
+
+    ! Open dataset
+    ! check if dataset exists
+    call h5lexists_f(file_id, name, got, errorflag)
+    if (.not. got) then
+       errorflag = -1
+       write(*,*) 'Dataset ', name, ' does not exist. (?)'
+       return
+    endif
+
+    ! open dataset
+    call h5dopen_f(file_id, name, dset_id, errorflag)
+    if (errorflag /= 0) then
+      write(*,*) "Cannot open hdf5 dataset in get_rank"
+      return
+    endif
+
+    ! Get the dataspace ID
+    call h5dget_space_f(dset_id, dspace_id, errorflag)
+    if (errorflag /= 0) then
+      write(*,*) "Cannot get dataspace id in get_rank"
+      return
+    endif
+
+
+    ! Getting dims from dataspace
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, errorflag)
+    if (errorflag /= 0) then
+      write(*,*) "Cannot get rank in get_rank"
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, errorflag)
+    if (errorflag /= 0) then
+      write(*,*) "cannot close hdf5 dataset in get_rank"
+      return
+    endif
+
+  end subroutine get_dset_rank
+
+
+  subroutine get_dset_dims(file_id, name, dims, maxdims, got, errorflag)
+
+    ! Inputs
+    integer(hid_t), intent(in)           :: file_id
+    character(*),   intent(in)           :: name
+
+    ! Outputs
+    integer, dimension(:), intent(out)   :: dims, maxdims
+    logical, intent(out)                 :: got
+    integer, intent(out)                 :: errorflag
+
+    ! Local
+    integer(hid_t)                              :: dset_id, dspace_id
+    integer(hsize_t), dimension(:), allocatable :: h5dims, h5maxdims
+
+    allocate(h5dims(size(dims)))
+    allocate(h5maxdims(size(dims)))
+
+    ! Open dataset
+    ! check if dataset exists
+    call h5lexists_f(file_id, name, got, errorflag)
+    if (.not. got) then
+       errorflag = -1
+       write(*,*) 'Dataset ', name, ' does not exist. (?)'
+       return
+    endif
+
+    ! open dataset
+    call h5dopen_f(file_id, name, dset_id, errorflag)
+    if (errorflag /= 0) then
+      write(*,*) "Cannot open hdf5 dataset in get_rank"
+      return
+    endif
+
+    ! Get the dataspace ID
+    call h5dget_space_f(dset_id, dspace_id, errorflag)
+    if (errorflag /= 0) then
+      write(*,*) "Cannot get dataspace id in get_dims"
+      return
+    endif
+
+
+    ! Getting dims from dataspace
+    call h5sget_simple_extent_dims_f(dspace_id, h5dims, h5maxdims, errorflag)
+    if (errorflag < 0) then
+      write(*,*) "Cannot get dims in get_dims"
+      write(*,*) "dims", h5dims, "maxdims", h5maxdims
+      return
+    else
+      errorflag = 0
+    endif
+
+
+    ! Allocate memory for the array.
+    dims(:) = h5dims(:)
+    maxdims(:) = h5maxdims(:)
+
+    ! Deallocate
+    deallocate(h5dims)
+    deallocate(h5maxdims)
+
+    ! close dataset
+    call h5dclose_f(dset_id, errorflag)
+    if (errorflag /= 0) then
+      write(*,*) "cannot close hdf5 dataset in get_dims"
+      return
+    endif
+
+  end subroutine get_dset_dims
 
   integer(hid_t) function get_native_dtype(ds_id, dname) result(native_dtype)
 
@@ -57,7 +191,7 @@ contains
     call h5tclose_f(dtype_id, ierr)
     if(ierr/=0) error stop 'h5fortran:reader: closing dtype ' // dname
 
-    ! write(*,*) "Class: ", class
+    ! write(*,*) "Class: ", class, size_bytes
     ! write(*,*) "H5T_INTEGER_F: ", H5T_INTEGER_F
     ! write(*,*) "H5T_FLOAT_F:   ", H5T_FLOAT_F
     ! write(*,*) "H5T_STRING_F: ", H5T_STRING_F
@@ -118,8 +252,6 @@ contains
     ! Get dtype
     dtype_id = get_native_dtype(dset_id, name)
 
-
-
     ! read dataset
     call h5dread_f(dset_id, dtype_id, x, xshape, error)
     if (error /= 0) then
@@ -137,52 +269,9 @@ contains
     if (error /= 0) got = .false.
   end subroutine read_integer
 
-  ! subroutine read_integer_longlong(x, name, id, got, error)
+  subroutine read_integer_long(x, name, id, got, error)
 
-  !   integer(kind=8), intent(out) :: x
-  !   character(*),    intent(in)  :: name
-  !   integer(hid_t),  intent(in)  :: id
-  !   logical,         intent(out) :: got
-  !   integer,         intent(out) :: error
-
-  !   integer(hsize_t), parameter  :: xshape(0) = 0
-  !   integer(hid_t) :: dset_id
-  !   integer(hid_t) :: dtype_id
-
-  !   dtype_id = H5T_STD_I64LE
-
-  !   ! check if dataset exists
-  !   call h5lexists_f(id, name, got, error)
-  !   if (.not.got) return
-
-  !   ! open dataset
-  !   call h5dopen_f(id, name, dset_id, error)
-  !   if (error /= 0) then
-  !     write(*,'("cannot open hdf5 dataset",/)')
-  !     return
-  !   endif
-
-  !   ! read dataset
-  !   call h5dread_f(dset_id, dtype_id, x, xshape, error)
-  !   if (error /= 0) then
-  !     write(*,'("cannot read hdf5 dataset",/)')
-  !     return
-  !   endif
-
-  !   ! close dataset
-  !   call h5dclose_f(dset_id, error)
-  !   if (error /= 0) then
-  !     write(*,'("cannot close hdf5 dataset",/)')
-  !     return
-  !   endif
-
-  !   if (error /= 0) got = .false.
-  ! end subroutine read_integer_longlong
-
-
-  subroutine read_real8(x, name, id, got, error)
-
-    real(kind=8), intent(out) :: x
+    integer(kind=8), intent(out) :: x
     character(*),    intent(in)  :: name
     integer(hid_t),  intent(in)  :: id
     logical,         intent(out) :: got
@@ -192,7 +281,55 @@ contains
     integer(hid_t) :: dset_id
     integer(hid_t) :: dtype_id
 
-    dtype_id = h5t_native_integer
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not. got) then
+       error = -1
+       write(*,*) 'Dataset ', name, ' does not exist. (?)'
+       return
+    endif
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! read dataset
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    if (error /= 0) got = .false.
+  end subroutine read_integer_long
+
+  subroutine read_real4_array_2d(x, name, id, got, error)
+
+    real(kind=4),    intent(out) :: x(:,:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 2
+    integer(hsize_t)   :: xshape(ndims)
+    integer(hid_t)     :: dset_id
+    integer(hid_t)     :: dtype_id
+
+    xshape = shape(x)
 
     ! check if dataset exists
     call h5lexists_f(id, name, got, error)
@@ -204,6 +341,53 @@ contains
       write(*,'("cannot open hdf5 dataset",/)')
       return
     endif
+
+    ! Get dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! read dataset
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    if (error /= 0) got = .false.
+  end subroutine read_real4_array_2d
+
+  subroutine read_real8(x, name, id, got, error)
+
+    real(kind=8),    intent(out) :: x
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer(hsize_t), parameter  :: xshape(0) = 0
+    integer(hid_t) :: dset_id
+    integer(hid_t) :: dtype_id
+
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get datatype
+    dtype_id = get_native_dtype(dset_id, name)
 
     ! read dataset
     call h5dread_f(dset_id, dtype_id, x, xshape, error)
@@ -221,6 +405,52 @@ contains
 
     if (error /= 0) got = .false.
   end subroutine read_real8
+
+  subroutine read_real8_array_1d(x, name, id, got, error)
+
+    real(kind=8),    intent(out) :: x(:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 1
+    integer(hsize_t)   :: xshape(ndims)
+    integer(hid_t)     :: dset_id
+    integer(hid_t)     :: dtype_id
+
+    xshape = shape(x)
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! read dataset
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    if (error /= 0) got = .false.
+  end subroutine read_real8_array_1d
 
   subroutine read_integer_array_1d(x, name, id, got, error)
 
@@ -268,15 +498,167 @@ contains
     if (error /= 0) got = .false.
   end subroutine read_integer_array_1d
 
-  subroutine read_integer_array_4d(x, name, id, got, error)
+  subroutine read_integer_array_2d(x, name, id, got, error)
 
-    integer,         intent(out) :: x(:,:,:,:)
+    integer,    intent(out) :: x(:,:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 2
+    integer(hsize_t)   :: xshape(ndims)
+    integer(hid_t)     :: dset_id
+    integer(hid_t)     :: dtype_id
+
+    xshape = shape(x)
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! read dataset
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    if (error /= 0) got = .false.
+  end subroutine read_integer_array_2d
+
+  subroutine read_integer_long_array_4d(x, name, id, got, error)
+
+    integer(kind=8),         intent(out)         :: x(:,:,:,:)
+    integer,         allocatable, target :: rdata(:,:,:,:,:)
     character(*),    intent(in)  :: name
     integer(hid_t),  intent(in)  :: id
     logical,         intent(out) :: got
     integer,         intent(out) :: error
 
     integer, parameter :: ndims = 4
+    integer(hsize_t), dimension(ndims)   :: xshape
+    integer(hsize_t), dimension(ndims)   :: dims, maxdims
+    integer(hsize_t), dimension(1)       :: sdims, smaxdims
+    integer(hid_t)     :: dset_id
+    integer(hid_t)     :: filetype, memtype, space
+    integer(hid_t)     :: dtype_id
+    integer            :: i,j
+
+    xshape = shape(x)
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get native dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! Reading the array
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    if (error /= 0) got = .false.
+  end subroutine read_integer_long_array_4d
+
+
+  subroutine read_integer_array_4d(x, name, id, got, error)
+
+    integer,         intent(out)         :: x(:,:,:,:)
+    integer,         allocatable, target :: rdata(:,:,:,:,:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 4
+    integer(hsize_t), dimension(ndims)   :: xshape
+    integer(hsize_t), dimension(ndims)   :: dims, maxdims
+    integer(hsize_t), dimension(1)       :: sdims, smaxdims
+    integer(hid_t)     :: dset_id
+    integer(hid_t)     :: filetype, memtype, space
+    integer(hid_t)     :: dtype_id
+    integer            :: i,j
+
+    xshape = shape(x)
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get native dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! Reading the array
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+
+    write(*,*) 'post close'
+
+    if (error /= 0) got = .false.
+  end subroutine read_integer_array_4d
+
+  subroutine read_real_array_2d(x, name, id, got, error)
+
+    real(kind=8),    intent(out) :: x(:,:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 2
     integer(hsize_t)   :: xshape(ndims)
     integer(hid_t)     :: dset_id
     integer(hid_t)     :: dtype_id
@@ -312,6 +694,52 @@ contains
     endif
 
     if (error /= 0) got = .false.
-  end subroutine read_integer_array_4d
+  end subroutine read_real_array_2d
+
+  subroutine read_real_array_5d(x, name, id, got, error)
+
+    real(kind=8),            intent(out) :: x(:,:,:,:,:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 5
+    integer(hsize_t)   :: xshape(ndims)
+    integer(hid_t)     :: dset_id
+    integer(hid_t)     :: dtype_id
+
+    xshape = shape(x)
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get native dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! read dataset
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    if (error /= 0) got = .false.
+  end subroutine read_real_array_5d
 
 end module hdf5_utils
