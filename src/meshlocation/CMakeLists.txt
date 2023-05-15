@@ -34,14 +34,28 @@ target_link_libraries(
     constants
 )
 
+
+add_library(jacobian jacobian.F90)
+
+target_link_libraries(
+    jacobian
+    constants
+)
+
 add_library(point_location point_location.F90)
 
 target_link_libraries(
     point_location
     ctypes
     constants
+    jacobian
 )
 
+add_library(gll_library gll_library.F90)
 
 add_library(lagrange_poly lagrange_poly.F90)
-add_library(gll_library gll_library.F90)
+
+target_link_libraries(
+    lagrange_poly
+    gll_library
+)

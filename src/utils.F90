@@ -2,7 +2,7 @@ module utils
 
   implicit none
   private
-  public :: throwerror
+  public :: throwerror, scaleM
 
 contains
 
@@ -25,5 +25,14 @@ contains
 
   end subroutine throwerror
 
+  double precision function scaleM(M)
+
+    use constants, only: RHOAV, R_PLANET, PI, GRAV
+
+    double precision, intent(in) :: M
+
+    scaleM = M / (1.d7 * RHOAV * (R_PLANET**5) * PI*GRAV*RHOAV)
+
+  end function scaleM
 
 end module

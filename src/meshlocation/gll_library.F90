@@ -27,6 +27,9 @@
 !
 !========================================================================
 
+module gll_library
+
+contains
 !=======================================================================
 !
 !  Library to compute the Gauss-Lobatto-Legendre points and weights
@@ -34,6 +37,39 @@
 !  Department of Mechanical Engineering
 !
 !=======================================================================
+
+
+
+  double precision function gammaf (x)
+
+  implicit none
+
+  double precision, parameter :: pi = 3.141592653589793d0
+
+  double precision, intent(in) :: x
+
+  double precision, parameter :: half=0.5d0,one=1.d0,two=2.d0
+
+  gammaf = one
+
+  if (x == -half) gammaf = -two*dsqrt(pi)
+  if (x == half) gammaf =  dsqrt(pi)
+  if (x == one) gammaf =  one
+  if (x == two) gammaf =  one
+  if (x == 1.5d0) gammaf =  dsqrt(pi)/2.d0
+  if (x == 2.5d0) gammaf =  1.5d0*dsqrt(pi)/2.d0
+  if (x == 3.5d0) gammaf =  2.5d0*1.5d0*dsqrt(pi)/2.d0
+  if (x == 3.d0 ) gammaf =  2.d0
+  if (x == 4.d0 ) gammaf = 6.d0
+  if (x == 5.d0 ) gammaf = 24.d0
+  if (x == 6.d0 ) gammaf = 120.d0
+
+  end function gammaf
+
+!
+!=====================================================================
+!
+
 
 ! note: this version uses zwgljd() with double precision arguments
 
@@ -46,7 +82,7 @@
 
   double precision, parameter :: zero=0.d0,one=1.d0,two=2.d0,three=3.d0,four=4.d0
   double precision :: apb,f1,fint1,fint2,f2,di,abn,abnn,a1,a2,a3,f3
-  double precision, external :: gammaf
+
   integer :: i
 
   f3 = zero
@@ -98,7 +134,7 @@
 
   double precision, parameter :: zero=0.d0,one=1.d0,two=2.d0,three=3.d0,four=4.d0
   double precision :: apb,f1,fint1,fint2,f2,di,abn,abnn,a1,a2,a3,f3
-  double precision, external :: gammaf
+
   integer :: i
 
   apb = alpha+beta
@@ -139,36 +175,6 @@
 
 !
 !=======================================================================
-!
-
-  double precision function gammaf (x)
-
-  implicit none
-
-  double precision, parameter :: pi = 3.141592653589793d0
-
-  double precision, intent(in) :: x
-
-  double precision, parameter :: half=0.5d0,one=1.d0,two=2.d0
-
-  gammaf = one
-
-  if (x == -half) gammaf = -two*dsqrt(pi)
-  if (x == half) gammaf =  dsqrt(pi)
-  if (x == one) gammaf =  one
-  if (x == two) gammaf =  one
-  if (x == 1.5d0) gammaf =  dsqrt(pi)/2.d0
-  if (x == 2.5d0) gammaf =  1.5d0*dsqrt(pi)/2.d0
-  if (x == 3.5d0) gammaf =  2.5d0*1.5d0*dsqrt(pi)/2.d0
-  if (x == 3.d0 ) gammaf =  2.d0
-  if (x == 4.d0 ) gammaf = 6.d0
-  if (x == 5.d0 ) gammaf = 24.d0
-  if (x == 6.d0 ) gammaf = 120.d0
-
-  end function gammaf
-
-!
-!=====================================================================
 !
 
   subroutine jacg (xjac,np,alpha,beta)
@@ -417,7 +423,7 @@
   integer, intent(in) :: n
 
   double precision :: one,two,dn,const,prod,dindx,frac
-  double precision, external :: gammaf
+
   integer :: i
 
   one   = 1.d0
@@ -474,7 +480,7 @@
   integer :: n,np1,np2,i
   double precision :: p,pd,pm1,pdm1,pm2,pdm2
   double precision :: apb,dnp1,dnp2,fac1,fac2,fac3,fnorm,rcoef
-  double precision, external :: gammaf,pnormj
+
 
   pd = zero
   pm1 = zero
@@ -545,7 +551,7 @@
   integer :: n,nm1,i
   double precision :: p,pd,pm1,pdm1,pm2,pdm2
   double precision :: alpg,betg
-  double precision, external :: endw1,endw2
+
 
   p = zero
   pm1 = zero
@@ -614,7 +620,6 @@
 !
 !  double precision z
 !  integer n
-!  double precision, external :: pnleg
 !
 !  if (abs(z+1.d0) > TINYVAL) then  ! if (z /= -1.d0)
 !    pnglj = (pnleg(z,n)+pnleg(z,n+1))/(ONE+z)
@@ -642,7 +647,6 @@
 !
 !  double precision z
 !  integer n
-!  double precision, external :: pnleg, pndleg
 !
 !  if (abs(z+1.d0) > TINYVAL) then  ! if (z /= -1.d0)
 !    pndglj = (pndleg(z,n)+pndleg(z,n+1))/(ONE+z) - (pnleg(z,n)+pnleg(z,n+1))/((ONE+z)**2)
@@ -653,3 +657,5 @@
 !  end function pndglj
 !
 
+
+end module

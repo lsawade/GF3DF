@@ -218,6 +218,7 @@ contains
 !     NZ Gauss-Lobatto Legendre points ZGLL at point ZGLL(j)
 !
 !------------------------------------------------------------------------
+  use gll_library, only: pnleg, pndleg
 
   implicit none
 
@@ -226,8 +227,6 @@ contains
 
   ! local parameters
   integer :: degpoly
-
-  double precision, external :: pnleg,pndleg
 
   degpoly = nz - 1
   if (i == 0 .and. j == 0) then

@@ -40,8 +40,9 @@ module constants
   integer, parameter :: ISTANDARD_OUTPUT = 6     ! or for cray: 101
   ! I/O unit for file input,output
   integer, parameter :: IIN = 40,IOUT = 41
+
   ! uncomment this to write messages to a text file
-  integer, parameter :: IMAIN = 42
+  integer, parameter :: IMAIN = 6 !42
 
   ! 3D simulation/mesh
   integer, parameter :: NDIM = 3

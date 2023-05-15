@@ -19,6 +19,7 @@ add_library(utils utils.F90)
 target_link_libraries(
     utils
     ctypes
+    constants
     hdf5_utils
 )
 
@@ -52,15 +53,16 @@ add_library(source_location source_location.F90)
 
 target_link_libraries(
     source_location
-    reduce
-    get_cmt
-    ctypes
-    kdtree_search
     constants
+    ctypes
+    get_cmt
+    kdtree_search
+    point_location
+    rthetaphi_xyz
+    reduce
     topo
     utils
     spline_routines
-    rthetaphi_xyz
 )
 
 # Create utilities

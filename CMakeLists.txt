@@ -12,6 +12,8 @@ project (GF3D
 
 enable_language (C Fortran)
 
+# set (FFLAGS "-Og -g -Wall -Wextra -pedantic -std=f95 -fimplicit=none -fcheck-all -fbacktrace")
+
 find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 

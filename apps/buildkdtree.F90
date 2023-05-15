@@ -4,8 +4,8 @@
 program open_file
 
   use gf3d, only: read_GF, print_GF, t_GF, free_GF, throwerror, &
-                  setup_point_search_arrays, t_source, locate_sources
-
+                  setup_point_search_arrays, t_source, locate_sources, &
+                  scaleM
 
   ! variable names
   character(len=65) :: filename ! input variable
@@ -38,6 +38,8 @@ program open_file
 
   call setup_point_search_arrays(GF)
 
+
+
   ! ---------------------------------------------------------------------------
   ! Using this source
   ! PDEW2015  9 16 22 54 32.90 -31.5700  -71.6700  22.4 0.0 8.3 NEAR COAST OF CENTRAL CH
@@ -62,15 +64,17 @@ program open_file
   sources(1)%latitude = -31.1300
   sources(1)%longitude = -72.0900
   sources(1)%depth = 17.3500
-  sources(1)%Mrr =  1.950000E+28
-  sources(1)%Mtt = -4.360000E+26
-  sources(1)%Mpp = -1.910000E+28
-  sources(1)%Mrt =  7.420000E+27
-  sources(1)%Mrp = -2.480000E+28
-  sources(1)%Mtp =  9.420000E+26
+  sources(1)%Mrr = scaleM(dble( 1.950000E+28))
+  sources(1)%Mtt = scaleM(dble(-4.360000E+26))
+  sources(1)%Mpp = scaleM(dble(-1.910000E+28))
+  sources(1)%Mrt = scaleM(dble( 7.420000E+27))
+  sources(1)%Mrp = scaleM(dble(-2.480000E+28))
+  sources(1)%Mtp = scaleM(dble( 9.420000E+26))
   sources(1)%time_shift = 49.9800
   sources(1)%hdur = 33.4000
 
+  write(*,*) "GF%bool"
+  write(*,*) GF%ibool
 
   call locate_sources(GF, sources)
 

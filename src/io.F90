@@ -229,9 +229,9 @@ contains
     endif
 
     ! Finally define a midpoint number on the fly.
-    GF%midx = GF%ngllx / 2
-    GF%midy = GF%nglly / 2
-    GF%midz = GF%ngllz / 2
+    GF%midx = GF%ngllx / 2 + 1
+    GF%midy = GF%nglly / 2 + 1
+    GF%midz = GF%ngllz / 2 + 1
 
   end subroutine load_header
 
@@ -240,11 +240,13 @@ contains
 
     use constants, only: GAUSSALPHA, GAUSSBETA
     use gll_library, only: zwgljd
-    use langrange_poly, only: lagrange_any
+    use langrange_poly, only: lagrange_any, lagrange_deriv_GLL
     use ctypes, only: t_GF
     use utils, only: throwerror
     use hdf5
     use hdf5_utils, only: read_from_hdf5, get_dset_dims
+
+    implicit none
 
     ! file, group, attribute ids
     integer(hid_t), intent(in)    :: file_id
@@ -255,6 +257,9 @@ contains
     ! Flags
     integer :: errorflag
     logical :: got
+
+    ! iterators
+    integer :: k1, k2, j1, j2, i1, i2
 
     ! Root name
     character(len=1)  :: name_root = "/"
@@ -359,6 +364,10 @@ contains
       enddo
     enddo
 
+    if (GF%do_adjacency_search == 1) then
+      allocate(GF%adjacency(dims_adjacency(1)))
+      allocate(GF%xadj(dims_xadj(1)))
+    endif
 
     if (GF%ellipticity == 1) then
       allocate(GF%rspl(dims_ellipticity(1)))
@@ -372,7 +381,6 @@ contains
     endif
     write(*,*) "check point"
 
-
     allocate(GF%ibool(dims_ibool(1), dims_ibool(2), dims_ibool(3), dims_ibool(4)))
     allocate(GF%displacement(dims_displacement(1), &
       dims_displacement(2), &
@@ -385,6 +393,9 @@ contains
     call read_from_hdf5(GF%ibool, name_ibool, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading ibool")
 
+    ! Add 1 to the indexing array
+    GF%ibool(:,:,:,:) = GF%ibool(:,:,:,:) + 1
+
     call read_from_hdf5(GF%displacement, name_displacement, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading displacement")
 
@@ -393,6 +404,20 @@ contains
 
     call read_from_hdf5(GF%xyz, name_xyz, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading xyz")
+
+    write(*,*) "GF%xyz after reading"
+    write(*,*) GF%xyz
+
+    if (GF%do_adjacency_search == 1) then
+
+      call read_from_hdf5(GF%adjacency, name_adjacency, file_id, got, errorflag)
+      call throwerror(errorflag, "Error Reading  adjacency")
+
+      call read_from_hdf5(GF%xadj, name_xadj, file_id, got, errorflag)
+      call throwerror(errorflag, "Error Reading xadj")
+
+    endif
+
 
     if (GF%ellipticity == 1) then
       call read_from_hdf5(GF%rspl, name_rspl, file_id, got, errorflag)

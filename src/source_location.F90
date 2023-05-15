@@ -47,6 +47,7 @@ contains
     use utils, only: throwerror
     use rthetaphi_xyz, only: lat_2_geocentric_colat_dble, xyz_2_rthetaphi_dble, &
                              geocentric_2_geographic_dble
+    use point_location, only: locate_point
     use get_cmt, only: &
       get_cmt_scalar_moment, &
       get_cmt_moment_magnitude, &
@@ -64,21 +65,21 @@ contains
     integer :: ier
 
     ! Source parameter pointers
+    double precision :: depth
     double precision :: lat
     double precision :: lon
-    double precision :: depth
-    double precision :: Mrr
-    double precision :: Mtt
-    double precision :: Mpp
-    double precision :: Mrt
-    double precision :: Mrp
-    double precision :: Mtp
-    double precision :: Mxx
-    double precision :: Myy
-    double precision :: Mzz
-    double precision :: Mxy
-    double precision :: Mxz
-    double precision :: Myz
+    double precision, pointer :: Mrr
+    double precision, pointer :: Mtt
+    double precision, pointer :: Mpp
+    double precision, pointer :: Mrt
+    double precision, pointer :: Mrp
+    double precision, pointer :: Mtp
+    double precision, pointer :: Mxx
+    double precision, pointer :: Myy
+    double precision, pointer :: Mzz
+    double precision, pointer :: Mxy
+    double precision, pointer :: Mxz
+    double precision, pointer :: Myz
     double precision, dimension(:,:), pointer :: nu
 
     double precision :: sint,cost,sinp,cosp
@@ -127,8 +128,8 @@ contains
       ! loop over sources within this subset
 
       ! source lat/lon in degrees
-      lat => sources(isource)%latitude
-      lon => sources(isource)%longitude
+      lat = sources(isource)%latitude
+      lon = sources(isource)%longitude
 
       ! limits longitude to [0.0,360.0]
       if (lon < 0.d0 ) lon = lon + 360.d0
@@ -138,6 +139,7 @@ contains
       call lat_2_geocentric_colat_dble(lat,sources(isource)%theta)
 
       sources(isource)%phi = lon*DEGREES_TO_RADIANS
+
       call reduce(sources(isource)%theta,sources(isource)%phi)
 
       sint = sin(sources(isource)%theta)
@@ -145,7 +147,9 @@ contains
       sinp = sin(sources(isource)%phi)
       cosp = cos(sources(isource)%phi)
 
-      if (sources(isource)%force) then
+      if (sources(isource)%force .eqv. .false.) then
+
+        if (isource == 1) write(IMAIN, *) " Rotating moment tensor"
 
         ! get the moment tensor
         Mrr => sources(isource)%Mrr
@@ -179,6 +183,7 @@ contains
 
         Myz = sint*cost*sinp*Mrr - sint*cost*sinp*Mtt &
             + (cost*cost-sint*sint)*sinp*Mrt + cost*cosp*Mrp - sint*cosp*Mtp
+
 
       endif
 
@@ -225,8 +230,9 @@ contains
 
 
       ! point depth (in m)
-      depth = sources(isource)%depth*1000.0d0
+      depth = sources(isource)%depth * 1000.0d0
 
+      write(*,*) "MT depth"
       ! normalized source radius
       r0 = R_UNIT_SPHERE
 
@@ -268,7 +274,10 @@ contains
       sources(isource)%y_target = sources(isource)%r_target*sint*sinp
       sources(isource)%z_target = sources(isource)%r_target*cost
 
-
+      write (*,*) "Anchors"
+      write (*,*) GF%anchor_iax
+      write (*,*) GF%anchor_iay
+      write (*,*) GF%anchor_iaz
       ! locates best element and xi/eta/gamma interpolation values
       call locate_point(&
         sources(isource)%x_target, &
@@ -277,25 +286,17 @@ contains
         sources(isource)%latitude, &
         sources(isource)%longitude, &
         sources(isource)%ispec, &
+        GF%nspec, GF%ngllx, GF%nglly, GF%ngllz, GF%midx, GF%midy, GF%midz, &
+        GF%ibool, GF%xyz(:,1),GF%xyz(:,2), GF%xyz(:,3), GF%xadj, GF%adjacency, &
+        GF%xigll, GF%yigll, GF%zigll, GF%anchor_iax, GF%anchor_iay, GF%anchor_iaz, &
+        .true., &
         sources(isource)%xi, &
         sources(isource)%eta, &
         sources(isource)%gamma, &
         sources(isource)%x, &
         sources(isource)%y, &
         sources(isource)%z, &
-        sources(isource)%final_distance, &
-        .true.)
-
-
-
-      ! Make loop to find best location
-      ! TODO
-      ! TODO
-      ! TODO
-      ! TODO
-      ! TODO
-      ! TODO
-
+        sources(isource)%final_distance)
 
 
         ! source info
@@ -329,14 +330,17 @@ contains
         write(IMAIN,*) '    nu2 = ',nu(2,:),'East'
         write(IMAIN,*) '    nu3 = ',nu(3,:),'Vertical'
         write(IMAIN,*)
-        write(IMAIN,*) '    at (x,y,z) coordinates = ', sources(isource)%x_found, &
-          sources(isource)%y_found, sources(isource)%z_found
+        write(IMAIN,*) '    at (x,y,z) coordinates = ', sources(isource)%x, &
+          sources(isource)%y, sources(isource)%z
       else
         ! moment tensor
         write(IMAIN,*) '  using moment tensor source: '
         write(IMAIN,*) '    xi coordinate of source in that element: ',sources(isource)%xi
         write(IMAIN,*) '    eta coordinate of source in that element: ',sources(isource)%eta
         write(IMAIN,*) '    gamma coordinate of source in that element: ',sources(isource)%gamma
+
+        write(IMAIN,*) '    at (x,y,z) coordinates = ', sources(isource)%x, &
+          sources(isource)%y, sources(isource)%z
       endif
       write(IMAIN,*)
 
@@ -425,9 +429,9 @@ contains
       write(IMAIN,*)
 
       ! get latitude, longitude and depth of the source that will be used
-      call xyz_2_rthetaphi_dble(sources(isource)%x_found, &
-                                sources(isource)%y_found, &
-                                sources(isource)%z_found, &
+      call xyz_2_rthetaphi_dble(sources(isource)%x, &
+                                sources(isource)%y, &
+                                sources(isource)%z, &
                                 sources(isource)%r_found, &
                                 sources(isource)%theta, &
                                 sources(isource)%phi)
@@ -469,7 +473,7 @@ contains
         write(IMAIN,*) '*****************************************************'
         write(IMAIN,*) '*****************************************************'
       endif
-      call flush_IMAIN()
+      call flush(IMAIN)
 
 
     enddo ! end of loop over all source subsets

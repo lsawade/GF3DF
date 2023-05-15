@@ -37,10 +37,10 @@ module ctypes
       real(kind=8),     dimension(:),         allocatable  :: rspl, ellipticity_spline, ellipticity_spline2
       integer,          dimension(:,:),       allocatable  :: bathy
       real(kind=8),     dimension(:,:,:,:,:), allocatable  :: displacement
-      real(kind=8),     dimension(:,:),       allocatable  :: xyz
+      real(kind=4),     dimension(:,:),       allocatable  :: xyz
       integer(kind=8),  dimension(:,:,:,:),   allocatable  :: ibool
-      integer(kind=8),  dimension(:),         allocatable  :: adjacency
-      integer(kind=8),  dimension(:),         allocatable  :: xadj
+      integer,  dimension(:),                 allocatable  :: adjacency
+      integer,  dimension(:),                 allocatable  :: xadj
 
       ! number of nodes for 2D and 3D shape functions for hexahedra with 27 nodes
       integer :: anchor_iax(27),anchor_iay(27),anchor_iaz(27)
