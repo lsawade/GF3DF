@@ -45,6 +45,24 @@ target_link_libraries(
     hex_nodes
 )
 
+# Add CMT library
+add_library(get_cmt get_cmt.F90)
+
+add_library(source_location source_location.F90)
+
+target_link_libraries(
+    source_location
+    reduce
+    get_cmt
+    ctypes
+    kdtree_search
+    constants
+    topo
+    utils
+    spline_routines
+    rthetaphi_xyz
+)
+
 # Create utilities
 add_library(io io.F90)
 
@@ -53,6 +71,9 @@ target_link_libraries(
     io
     utils
     ctypes
+    constants
+    gll_library
+    lagrange_poly
     hdf5_utils
     hdf5_fortran-shared
 )
@@ -67,6 +88,7 @@ target_link_libraries(
     ctypes
     constants
     setup_source_location
+    source_location
     hdf5_utils
     hdf5_fortran-shared
 )

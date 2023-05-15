@@ -32,7 +32,7 @@ module constants
   double precision, parameter :: FOUR_THIRDS = 4.d0/3.d0
 
   ! maximum length of strings used for paths, reading from files, etc.
-    integer, parameter :: MAX_STRING_LEN = 512
+  integer, parameter :: MAX_STRING_LEN = 512
 
   ! input, output and main MPI I/O files
   ! note: careful with these unit numbers, we mostly use units in the 40-50 range.
@@ -46,8 +46,16 @@ module constants
   ! 3D simulation/mesh
   integer, parameter :: NDIM = 3
 
-  logical, parameter :: USE_DISTANCE_CRITERION = .false.
+  ! for the Gauss-Lobatto-Legendre points and weights
+  double precision, parameter :: GAUSSALPHA = 0.d0,GAUSSBETA = 0.d0
 
+  ! number of iterations to solve the system for xi and eta
+  ! setting it to 5 instead of 4 ensures that the result obtained is not compiler dependent
+  ! (when using 4 only some small discrepancies were observed)
+  integer, parameter :: NUM_ITER = 5
+
+  ! For in-element point location
+  logical, parameter :: USE_DISTANCE_CRITERION = .false.
 
   ! Earth related constants
   double precision, parameter :: EARTH_FLATTENING_F = 1.0 / 299.80
@@ -80,9 +88,16 @@ module constants
   double precision, parameter :: R_PLANET_KM = EARTH_R_KM
   double precision, parameter :: RHOAV = EARTH_RHOAV
 
-
   ! Node setup
   integer, parameter :: NGNOD  = 27
+
+
+  ! Conversion for the source triangle
+  double precision, parameter :: SOURCE_DECAY_MIMIC_TRIANGLE = 1.628
+
+  ! Parameter used in coordinate conversion. Kept to not change
+  ! the conversion codes too much
+  logical, parameter :: USE_OLD_VERSION_5_1_5_FORMAT = .false.
 
 
 

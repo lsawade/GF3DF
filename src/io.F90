@@ -238,6 +238,9 @@ contains
 
   subroutine load_arrays(file_id, GF)
 
+    use constants, only: GAUSSALPHA, GAUSSBETA
+    use gll_library, only: zwgljd
+    use langrange_poly, only: lagrange_any
     use ctypes, only: t_GF
     use utils, only: throwerror
     use hdf5
@@ -322,6 +325,40 @@ contains
 
 
     ! ------ Allocate arrays ------------------------
+
+
+    ! GLL interpolation values
+    allocate(GF%xigll(GF%ngllx), GF%yigll(GF%nglly), GF%zigll(GF%ngllz))
+    allocate(GF%wxgll(GF%ngllx), GF%wygll(GF%nglly), GF%wzgll(GF%ngllz))
+    allocate(&
+      GF%hprime_xx(GF%ngllx, GF%ngllx), &
+      GF%hprime_yy(GF%nglly, GF%nglly), &
+      GF%hprime_zz(GF%ngllz, GF%ngllz))
+
+    ! GLL points and weights
+    call zwgljd(GF%xigll(:),GF%wxgll(:),GF%ngllx,GAUSSALPHA,GAUSSBETA)
+    call zwgljd(GF%yigll(:),GF%wygll(:),GF%nglly,GAUSSALPHA,GAUSSBETA)
+    call zwgljd(GF%zigll(:),GF%wzgll(:),GF%ngllz,GAUSSALPHA,GAUSSBETA)
+
+    ! Derivative values
+    do i1 = 1,GF%ngllx
+      do i2 = 1,GF%ngllx
+        GF%hprime_xx(i2,i1) = lagrange_deriv_GLL(i1-1,i2-1,GF%xigll,GF%ngllx)
+      enddo
+    enddo
+
+    do j1 = 1,GF%nglly
+      do j2 = 1,GF%nglly
+        GF%hprime_yy(j2,j1) = lagrange_deriv_GLL(j1-1,j2-1,GF%yigll,GF%nglly)
+      enddo
+    enddo
+
+    do k1 = 1,GF%ngllz
+      do k2 = 1,GF%nglly
+        GF%hprime_zz(k2,k1) = lagrange_deriv_GLL(k1-1,k2-1,GF%zigll,GF%ngllz)
+      enddo
+    enddo
+
 
     if (GF%ellipticity == 1) then
       allocate(GF%rspl(dims_ellipticity(1)))
@@ -419,6 +456,42 @@ contains
 
     if (allocated(GF%xadj)) then
       deallocate(GF%xadj)
+    endif
+
+    if (allocated(GF%xigll)) then
+      deallocate(GF%xigll)
+    endif
+
+    if (allocated(GF%yigll)) then
+      deallocate(GF%yigll)
+    endif
+
+    if (allocated(GF%zigll)) then
+      deallocate(GF%zigll)
+    endif
+
+    if (allocated(GF%wxgll)) then
+      deallocate(GF%wxgll)
+    endif
+
+    if (allocated(GF%wygll)) then
+      deallocate(GF%wygll)
+    endif
+
+    if (allocated(GF%wzgll)) then
+      deallocate(GF%wzgll)
+    endif
+
+    if (allocated(GF%hprime_xx)) then
+      deallocate(GF%hprime_xx)
+    endif
+
+    if (allocated(GF%hprime_yy)) then
+      deallocate(GF%hprime_yy)
+    endif
+
+    if (allocated(GF%hprime_zz)) then
+          deallocate(GF%hprime_zz)
     endif
 
   end subroutine free_GF
