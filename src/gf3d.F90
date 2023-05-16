@@ -6,6 +6,7 @@ module gf3d
   use utils, only: throwerror, scaleM
   use setup_source_location, only: setup_point_search_arrays
   use source_location, only: locate_sources
+  use interpolation, only: interpolateMT
   use hdf5
 
   private
@@ -18,7 +19,8 @@ module gf3d
     setup_point_search_arrays, &
     t_source, &
     locate_sources, &
-    scaleM
+    scaleM, &
+    interpolateMT
 
 
 

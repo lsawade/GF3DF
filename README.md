@@ -24,6 +24,11 @@ your compilation and in fortran you should be able to just `use gf3d`.
 
 ```bash
 export HDF5_ROOT="/home/lsawade/ph5py-testing/hdf5/build/phdf5"
+
+# For now add some debugging flags
+export FFLAGS="-Og -g -Wall -Wextra -pedantic -fimplicit-none -fcheck=all -fba
+cktrace"
+
 rm -rf build && \
     cmake -S . -B build && \
     cmake --build build && \

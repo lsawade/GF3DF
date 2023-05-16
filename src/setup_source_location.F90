@@ -11,8 +11,7 @@ contains
     use ctypes, only: t_GF
 
     use constants, only: &
-      IMAIN,TWO_PI,R_UNIT_SPHERE,DEGREES_TO_RADIANS, &
-      USE_DISTANCE_CRITERION, NDIM
+      IMAIN, NDIM
 
     use kdtree_search, only: kdtree_setup,kdtree_set_verbose, &
       kdtree_num_nodes,kdtree_nodes_location,kdtree_nodes_index
@@ -23,20 +22,16 @@ contains
     type(t_GF), intent(in)     :: GF
 
     ! local parameters
-    integer :: ispec,iglob,ier
-    integer :: i,j,k,inodes
-    double precision ANGULAR_WIDTH_XI_RAD,ANGULAR_WIDTH_ETA_RAD
+    integer(kind=8) :: iglob
+    integer :: ispec,ier
+    integer :: inodes
     ! determines tree points
-    logical :: use_midpoints_only
-
     ! Pointers to variables, so that I don't have to change anything.
-
-
 
     ! define (i,j,k) indices of the control/anchor points
     call hex_nodes_anchor_ijk(&
-        GF%midx,GF%midy,GF%midz, &
         GF%ngllx,GF%nglly,GF%ngllz, &
+        GF%midx,GF%midy,GF%midz, &
         GF%anchor_iax, GF%anchor_iay, GF%anchor_iaz)
 
     ! kd-tree setup for point localization

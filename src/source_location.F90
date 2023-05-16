@@ -38,7 +38,7 @@ contains
 
   subroutine locate_sources(GF, sources)
 
-    use constants, only: R_PLANET, RHOAV, ZERO, HUGEVAL, &
+    use constants, only: R_PLANET, RHOAV, ZERO, &
                         SOURCE_DECAY_MIMIC_TRIANGLE, RADIANS_TO_DEGREES, &
                         R_UNIT_SPHERE, PI_OVER_TWO, PI, IMAIN, GRAV, &
                         DEGREES_TO_RADIANS, TWO_PI
@@ -62,7 +62,6 @@ contains
 
     ! local parameters
     integer :: isource, NSOURCES
-    integer :: ier
 
     ! Source parameter pointers
     double precision :: depth
@@ -88,7 +87,6 @@ contains
     double precision :: elevation
     double precision :: r0,p20, radius
 
-    double precision :: distmin_not_squared
     double precision :: source_final_distance_max
 
     integer :: iorientation
@@ -293,6 +291,9 @@ contains
         sources(isource)%xi, &
         sources(isource)%eta, &
         sources(isource)%gamma, &
+        sources(isource)%xix,sources(isource)%xiy,sources(isource)%xiz, &
+        sources(isource)%etax,sources(isource)%etay,sources(isource)%etaz, &
+        sources(isource)%gammax,sources(isource)%gammay,sources(isource)%gammaz, &
         sources(isource)%x, &
         sources(isource)%y, &
         sources(isource)%z, &

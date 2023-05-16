@@ -22,7 +22,8 @@ module hdf5_utils
           read_integer_long_array_4d, &
           read_integer_long, &
           read_real_array_2d, &
-          read_real_array_5d
+          read_real_array_5d, &
+          read_char_array_1d
   end interface read_from_hdf5
 
 
@@ -741,5 +742,107 @@ contains
 
     if (error /= 0) got = .false.
   end subroutine read_real_array_5d
+
+  subroutine read_char_array_1d(x, name, id, got, error)
+
+    character(*),intent(out) :: x(:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 1
+    integer(hsize_t)   :: xshape(ndims)
+    integer(hid_t)     :: dset_id, filetype, memtype
+    integer(hid_t)     :: dtype_id, space
+    integer(size_t) :: size
+    integer(size_t), parameter :: sdim = 5
+    integer(hsize_t) :: dims(1)
+    integer(hsize_t) :: maxdims(1)
+    character(len=sdim), dimension(:), allocatable, target :: rdata(:)
+    type(C_PTR) :: f_ptr
+
+    xshape = shape(x)
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! ! Get dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! Get the datatype and its size.
+    call h5dget_type_f(dset_id, filetype, error)
+
+    write(*,*) "filetype", filetype
+    call h5tget_size_f(filetype, size, error)
+    if (error /= 0) then
+      write(*,'("cannot get hdf5 datatype or size",/)')
+      return
+    endif
+
+    if (size > sdim+1) then
+      write(*,*) 'error: character len is too small'
+      stop
+    endif
+
+    write(*,*) "size", size
+
+    ! Get dataspace.
+    call h5dget_space_f(dset_id, space, error)
+    if (error /= 0) then
+      write(*,'("cannot get hdf5 dataspace",/)')
+      return
+    endif
+
+    write(*,*) "space", space
+    call h5sget_simple_extent_dims_f(space, dims, maxdims, error)
+    if ((error < 0)) then
+      write(*,'("cannot get hdf5 extent",/)')
+      return
+    endif
+
+    write (*,*) "dims", dims, "maxdims", maxdims
+
+    allocate(rdata(1:dims(1)))
+
+    ! Create the memory datatype.
+    call h5tcopy_f(h5t_fortran_s1,memtype, error)
+    call h5tset_size_f(memtype, sdim, error)
+    if (error /= 0) then
+      write(*,'("cannot get HDF5 memory datatype",/)')
+      return
+    endif
+
+    ! Read the data.
+    f_ptr = C_LOC(rdata(1:dims(1)))
+
+    ! read dataset
+    call h5dread_f(dset_id, memtype, f_ptr, error, space)
+
+    ! call h5dread_f(dset_id, memtype, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    x(:) = rdata(:)
+
+    if (error /= 0) got = .false.
+  end subroutine read_char_array_1d
 
 end module hdf5_utils

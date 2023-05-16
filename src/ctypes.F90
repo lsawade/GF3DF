@@ -25,13 +25,12 @@ module ctypes
       real(kind=8)                   :: hdur = 0
       real(kind=8)                   :: tc = 0
       real(kind=8)                   :: resolution_topo_file = 0
-      character(len=5), dimension(:),         allocatable  :: networks, stations
-      real(kind=8),     dimension(:,:,:,:,:), allocatable  :: latitudes, longitudes
+      character(len=5), dimension(:), allocatable  :: networks, stations
+      real(kind=8),     dimension(:), allocatable  :: latitudes, longitudes
 
       ! Interpolation points, weights, values, and derivatives
       double precision, dimension(:), allocatable :: xigll, yigll, zigll
       double precision, dimension(:), allocatable :: wxgll, wygll, wzgll
-      double precision, dimension(:,:), allocatable :: hprime_xx, hprime_yy, hprime_zz
 
       ! Arrays
       real(kind=8),     dimension(:),         allocatable  :: rspl, ellipticity_spline, ellipticity_spline2
@@ -83,6 +82,9 @@ module ctypes
     double precision :: xi = 0.d0
     double precision :: eta = 0.d0
     double precision :: gamma = 0.d0
+    double precision :: xix = 0.d0, xiy = 0.d0, xiz = 0.d0
+    double precision :: etax = 0.d0, etay = 0.d0, etaz = 0.d0
+    double precision :: gammax = 0.d0, gammay = 0.d0, gammaz = 0.d0
 
     ! STF parameters
     double precision :: time_shift = 0.d0

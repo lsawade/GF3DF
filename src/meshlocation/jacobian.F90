@@ -255,6 +255,9 @@ contains
   jacobian = xxi*(yeta*zgamma-ygamma*zeta) - xeta*(yxi*zgamma-ygamma*zxi) + &
              xgamma*(yxi*zeta-yeta*zxi)
 
+  write(*,*) "jac", jacobian
+
+
   if (jacobian <= ZERO) stop '3D Jacobian undefined'
 
 ! invert the relation (Fletcher p. 50 vol. 2)

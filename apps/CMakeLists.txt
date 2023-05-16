@@ -12,9 +12,9 @@ target_link_libraries(
     hdf5_fortran-shared
 )
 
-add_executable(gfkd buildkdtree.F90)
+add_executable(gf3d-locate-source locate_source.F90)
 target_link_libraries(
-    gfkd
+    gf3d-locate-source
     gf3d
     utils
     ctypes
@@ -22,6 +22,18 @@ target_link_libraries(
     hdf5_utils
     hdf5_fortran-shared
 )
+
+add_executable(gf3d-interpolate-source interpolate_source.F90)
+target_link_libraries(
+    gf3d-interpolate-source
+    gf3d
+    utils
+    ctypes
+    setup_source_location
+    hdf5_utils
+    hdf5_fortran-shared
+)
+
 
 add_executable(test-rw-c test_rw.c)
 target_link_libraries(

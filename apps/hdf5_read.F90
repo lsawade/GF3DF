@@ -34,6 +34,9 @@ program open_file
   call print_GF(GF)
 
   ! call setup_point_search_arrays(GF)
+  write(*,*) GF%networks
+  write(*,*) GF%stations
+
 
   call free_GF(GF)
 

@@ -114,7 +114,7 @@ contains
     use ctypes, only: t_GF
     use utils, only: throwerror
     use hdf5
-    use hdf5_utils, only: read_from_hdf5
+    use hdf5_utils, only: read_from_hdf5, get_dset_dims
 
     ! file, group, attribute ids
     integer(hid_t), intent(in)    :: file_id
@@ -128,6 +128,10 @@ contains
 
     ! Root name
     character(len=1)  :: name_root = "/"
+
+    ! Network stations
+    integer, dimension(1)              :: dims_stations, maxdims_stations
+    integer, dimension(1)              :: dims_networks, maxdims_networks
 
     character(len=30) :: name_do_adjacency_search
     character(len=30) :: name_ellipticity
@@ -228,6 +232,23 @@ contains
       call throwerror(errorflag, "Error Reading "//name_resolution_topo_file)
     endif
 
+    ! Get stations and networks
+    call get_dset_dims(file_id, name_stations, dims_stations, maxdims_stations, got, errorflag)
+    call throwerror(errorflag, "Error getting stations dims")
+    call get_dset_dims(file_id, name_networks, dims_networks, maxdims_networks, got, errorflag)
+    call throwerror(errorflag, "Error getting networks dims")
+
+    ! Allocate stations and network names
+    allocate(GF%networks(dims_networks(1)), GF%stations(dims_stations(1)))
+
+    ! Reading station and network names
+    call read_from_hdf5(GF%stations, name_stations, file_id, got, errorflag)
+    call throwerror(errorflag, "Error Reading stations")
+
+    call read_from_hdf5(GF%networks, name_networks, file_id, got, errorflag)
+    call throwerror(errorflag, "Error Reading networks")
+
+
     ! Finally define a midpoint number on the fly.
     GF%midx = GF%ngllx / 2 + 1
     GF%midy = GF%nglly / 2 + 1
@@ -240,7 +261,7 @@ contains
 
     use constants, only: GAUSSALPHA, GAUSSBETA
     use gll_library, only: zwgljd
-    use langrange_poly, only: lagrange_any, lagrange_deriv_GLL
+    use lagrange_poly, only: lagrange_any, lagrange_deriv_GLL
     use ctypes, only: t_GF
     use utils, only: throwerror
     use hdf5
@@ -335,34 +356,11 @@ contains
     ! GLL interpolation values
     allocate(GF%xigll(GF%ngllx), GF%yigll(GF%nglly), GF%zigll(GF%ngllz))
     allocate(GF%wxgll(GF%ngllx), GF%wygll(GF%nglly), GF%wzgll(GF%ngllz))
-    allocate(&
-      GF%hprime_xx(GF%ngllx, GF%ngllx), &
-      GF%hprime_yy(GF%nglly, GF%nglly), &
-      GF%hprime_zz(GF%ngllz, GF%ngllz))
 
     ! GLL points and weights
     call zwgljd(GF%xigll(:),GF%wxgll(:),GF%ngllx,GAUSSALPHA,GAUSSBETA)
     call zwgljd(GF%yigll(:),GF%wygll(:),GF%nglly,GAUSSALPHA,GAUSSBETA)
     call zwgljd(GF%zigll(:),GF%wzgll(:),GF%ngllz,GAUSSALPHA,GAUSSBETA)
-
-    ! Derivative values
-    do i1 = 1,GF%ngllx
-      do i2 = 1,GF%ngllx
-        GF%hprime_xx(i2,i1) = lagrange_deriv_GLL(i1-1,i2-1,GF%xigll,GF%ngllx)
-      enddo
-    enddo
-
-    do j1 = 1,GF%nglly
-      do j2 = 1,GF%nglly
-        GF%hprime_yy(j2,j1) = lagrange_deriv_GLL(j1-1,j2-1,GF%yigll,GF%nglly)
-      enddo
-    enddo
-
-    do k1 = 1,GF%ngllz
-      do k2 = 1,GF%nglly
-        GF%hprime_zz(k2,k1) = lagrange_deriv_GLL(k1-1,k2-1,GF%zigll,GF%ngllz)
-      enddo
-    enddo
 
     if (GF%do_adjacency_search == 1) then
       allocate(GF%adjacency(dims_adjacency(1)))
@@ -404,9 +402,6 @@ contains
 
     call read_from_hdf5(GF%xyz, name_xyz, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading xyz")
-
-    write(*,*) "GF%xyz after reading"
-    write(*,*) GF%xyz
 
     if (GF%do_adjacency_search == 1) then
 
@@ -505,18 +500,6 @@ contains
 
     if (allocated(GF%wzgll)) then
       deallocate(GF%wzgll)
-    endif
-
-    if (allocated(GF%hprime_xx)) then
-      deallocate(GF%hprime_xx)
-    endif
-
-    if (allocated(GF%hprime_yy)) then
-      deallocate(GF%hprime_yy)
-    endif
-
-    if (allocated(GF%hprime_zz)) then
-          deallocate(GF%hprime_zz)
     endif
 
   end subroutine free_GF

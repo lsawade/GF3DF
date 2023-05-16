@@ -27,7 +27,7 @@
 !
 !========================================================================
 
-module langrange_poly
+module lagrange_poly
 
 contains
 
@@ -464,4 +464,4 @@ end function lagrange_2prime
 !  end function poly_deriv_GLJ
 
 
-end module langrange_poly
+end module lagrange_poly

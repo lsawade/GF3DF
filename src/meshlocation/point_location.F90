@@ -35,10 +35,12 @@ contains
   subroutine locate_point(&
         x_target,y_target,z_target, lat_target,lon_target, ispec_selected, &
         nspec, NGLLX, NGLLY,NGLLZ,MIDX,MIDY,MIDZ, &
-        ibool,xstore,ystore,zstore, xadj, adjncy, &
+        ibool,xstore,ystore,zstore,xadj,adjncy, &
         xigll, yigll, zigll, anchor_iax, anchor_iay, anchor_iaz, &
         POINT_CAN_BE_BURIED, &
-        xi,eta,gamma, x,y,z,distmin_not_squared)
+        xi,eta,gamma, &
+        xix,xiy,xiz,etax,etay,etaz,gammax,gammay,gammaz,x,y,z, &
+        distmin_not_squared)
 
     ! locates target point inside best mesh element
     use constants, only: HUGEVAL, USE_DISTANCE_CRITERION, R_PLANET_KM
@@ -63,6 +65,9 @@ contains
     ! OUT
     integer,intent(out) :: ispec_selected
     double precision,intent(out) :: xi,eta,gamma
+    double precision, intent(out) :: xix, xiy, xiz
+    double precision, intent(out) :: etax, etay, etaz
+    double precision, intent(out) :: gammax, gammay, gammaz
     double precision,intent(out) :: x,y,z
     double precision,intent(out) :: distmin_not_squared
 
@@ -88,6 +93,8 @@ contains
     ! looks for closer estimates in neighbor elements if needed
     logical,parameter :: DO_ADJACENT_SEARCH = .true.
 
+    logical, parameter :: DEBUG = .true.
+
     double precision, dimension(:,:), allocatable :: xyz_midpoints
 
     ! Get midpoints
@@ -96,15 +103,8 @@ contains
     xyz_midpoints(:,2) = ystore(ibool(MIDX, MIDY, MIDZ, :))
     xyz_midpoints(:,3) = zstore(ibool(MIDX, MIDY, MIDZ, :))
 
-    write(*,*) "xyz midpoints"
-    write(*,*) xyz_midpoints
-  !debug: sync
-  !  integer :: iproc
-
-  !debug: sync
-  !  do iproc = 0,NPROCTOT_VAL-1
-  !    if (iproc == myrank) then
-  !    print *,'iproc ',iproc; flush(6)
+    if (DEBUG) write(*,*) "xyz midpoints"
+    if (DEBUG) write(*,*) xyz_midpoints
 
     ! set distance to huge initial value
     distmin_squared = HUGEVAL
@@ -116,20 +116,6 @@ contains
     ix_initial_guess = MIDX
     iy_initial_guess = MIDY
     iz_initial_guess = MIDZ
-
-    ! limits latitude to [-90.0,90.0]
-    lat = lat_target
-    if (lat < -90.d0) lat = -90.d0
-    if (lat > 90.d0) lat = 90.d0
-
-    ! limits longitude to [0.0,360.0]
-    lon = lon_target
-    if (lon < 0.d0) lon = lon + 360.d0
-    if (lon > 360.d0) lon = lon - 360.d0
-
-    ! debug
-    !print *,'target located:',target_located,'lat',sngl(lat),sngl(lat_min),sngl(lat_max),'lon',sngl(lon),sngl(lon_min),sngl(lon_max)
-
 
     ! point in this slice
 
@@ -157,7 +143,7 @@ contains
                       + (y_target - dble(ystore(iglob)))*(y_target - dble(ystore(iglob))) &
                       + (z_target - dble(zstore(iglob)))*(z_target - dble(zstore(iglob)))
 
-          write(*,*) "dist2  ", dist_squared
+          write(*,*) "(i,j,k) dist2 (",i,j,k, ")", dist_squared
           ! take this point if it is closer to the receiver
           !  we compare squared distances instead of distances themselves to significantly speed up calculations
           if (dist_squared < distmin_squared) then
@@ -208,6 +194,7 @@ contains
 
     ! gets xi/eta/gamma and corresponding x/y/z coordinates
     call find_local_coordinates(x_target,y_target,z_target,xi,eta,gamma,x,y,z, &
+                                xix, xiy, xiz, etax, etay, etaz, gammax, gammay, gammaz, &
                                 ispec_selected,ix_initial_guess,iy_initial_guess,iz_initial_guess, &
                                 nspec,NGLLX,NGLLY,NGLLZ, &
                                 xstore,ystore,zstore, &
@@ -223,6 +210,7 @@ contains
         ! searches for better position in neighboring elements
         call find_best_neighbor(&
             x_target,y_target,z_target,xi,eta,gamma,x,y,z,ispec_selected,distmin_squared, &
+            xix, xiy, xiz, etax, etay, etaz, gammax, gammay, gammaz, &
             nspec,NGLLX,NGLLY,NGLLZ, MIDX, MIDY, MIDZ,&
             xstore,ystore,zstore,xadj,adjncy, &
             ibool,anchor_iax,anchor_iay,anchor_iaz, &
@@ -248,6 +236,7 @@ contains
 !
 
   subroutine find_local_coordinates(x_target,y_target,z_target,xi,eta,gamma,x,y,z, &
+                                    xix, xiy, xiz, etax, etay, etaz, gammax, gammay, gammaz, &
                                     ispec_selected,ix_initial_guess,iy_initial_guess,iz_initial_guess, &
                                     nspec,NGLLX,NGLLY,NGLLZ,xstore,ystore,zstore,ibool, &
                                     anchor_iax,anchor_iay,anchor_iaz,xigll,yigll,zigll, &
@@ -281,9 +270,11 @@ contains
 
   double precision :: dx,dy,dz,dx_min,dy_min,dz_min,d_min_sq
   double precision :: dxi,deta,dgamma
-  double precision :: xix,xiy,xiz
-  double precision :: etax,etay,etaz
-  double precision :: gammax,gammay,gammaz
+  double precision, intent(inout) :: xix,xiy,xiz
+  double precision, intent(inout) :: etax,etay,etaz
+  double precision, intent(inout) :: gammax,gammay,gammaz
+
+  logical, parameter :: DEBUG = .true.
 
   ! define coordinates of the control points of the element
   do ia = 1,NGNOD
@@ -293,19 +284,21 @@ contains
     zelm(ia) = dble(zstore(iglob))
   enddo
 
-  ! write (*,*) "Anchors"
-  ! write (*,*) xelm
-  ! write (*,*) yelm
-  ! write (*,*) zelm
+  if (DEBUG) write (*,*) "Anchors"
+  if (DEBUG) write (*,*) xelm
+  if (DEBUG) write (*,*) yelm
+  if (DEBUG) write (*,*) zelm
 
   ! use initial guess in xi and eta
+  if (DEBUG) write (*,*) "xigll"
+  if (DEBUG) write (*,*) xigll
   xi = xigll(ix_initial_guess)
   eta = yigll(iy_initial_guess)
   gamma = zigll(iz_initial_guess)
 
-  ! write (*,*) 'initial guess'
-  ! write (*,*) xi, eta, gamma
-  ! write (*,*)
+  if (DEBUG) write (*,*) 'initial guess'
+  if (DEBUG) write (*,*) xi, eta, gamma
+  if (DEBUG) write (*,*)
 
   ! impose receiver exactly at the surface
   if (.not. POINT_CAN_BE_BURIED) gamma = 1.d0
@@ -316,14 +309,21 @@ contains
   dz_min = HUGEVAL
 
   ! iterate to solve the non linear system
-  ! write (*,*) "START", x_target, y_target, z_target
-  ! write (*,*) "     ", xi, eta, gamma
-  ! write (*,*)
+  if (DEBUG) write (*,*) "START", x_target, y_target, z_target
+  if (DEBUG) write (*,*) "     ", xi, eta, gamma
+  if (DEBUG) write (*,*)
+
+  if (DEBUG) write (*,*) "START   x ", x_target, y_target, z_target
+  if (DEBUG) write (*,*) "       xi ", xi, eta, gamma
+  if (DEBUG) write (*,*) "      xix ", xix,xiy,xiz
+  if (DEBUG) write (*,*) "     etax ", etax,etay,etaz
+  if (DEBUG) write (*,*) "   gammax ", gammax,gammay,gammaz
 
   ! iterate to solve the non linear system
   do iter_loop = 1,NUM_ITER
 
     ! recompute Jacobian for the new point
+
     call recompute_jacobian(xelm,yelm,zelm,xi,eta,gamma,x,y,z, &
                             xix,xiy,xiz,etax,etay,etaz,gammax,gammay,gammaz)
 
@@ -332,8 +332,8 @@ contains
     dy = - (y - y_target)
     dz = - (z - z_target)
 
-    !debug
-    !print *,'  iter ',iter_loop,'dx',sngl(dx),sngl(dx_min),'dy',sngl(dy),sngl(dy_min),'dz',sngl(dz),sngl(dz_min),d_min_sq
+    if (DEBUG) write (*,*) '  iter ',iter_loop,'dx',sngl(dx),sngl(dx_min),'dy', &
+                                sngl(dy),sngl(dy_min),'dz',sngl(dz),sngl(dz_min),d_min_sq
 
     ! compute increments
     if ((dx**2 + dy**2 + dz**2) < d_min_sq) then
@@ -404,6 +404,7 @@ contains
 
   subroutine find_best_neighbor(&
     x_target,y_target,z_target,xi,eta,gamma,x,y,z,ispec_selected,distmin_squared, &
+    xix, xiy, xiz, etax, etay, etaz, gammax, gammay, gammaz, &
     nspec,NGLLX,NGLLY,NGLLZ,MIDX,MIDY,MIDZ, &
     xstore,ystore,zstore, xadj, adjncy, &
     ibool, anchor_iax,anchor_iay,anchor_iaz, &
@@ -417,6 +418,9 @@ contains
 
   double precision,intent(in) :: x_target,y_target,z_target
   double precision,intent(inout) :: xi,eta,gamma
+  double precision, intent(inout) :: xix,xiy,xiz
+  double precision, intent(inout) :: etax,etay,etaz
+  double precision, intent(inout) :: gammax,gammay,gammaz
   double precision,intent(inout) :: x,y,z
 
   integer,intent(inout) :: ispec_selected
@@ -558,6 +562,7 @@ contains
 
     ! gets xi/eta/gamma and corresponding x/y/z coordinates
     call find_local_coordinates(x_target,y_target,z_target,xi_n,eta_n,gamma_n,x_n,y_n,z_n, &
+                                xix, xiy, xiz, etax, etay, etaz, gammax, gammay, gammaz, &
                                 ispec,ix_initial_guess,iy_initial_guess,iz_initial_guess, &
                                 nspec,NGLLX,NGLLY,NGLLZ, &
                                 xstore,ystore,zstore, &

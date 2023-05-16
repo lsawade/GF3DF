@@ -65,6 +65,18 @@ target_link_libraries(
     spline_routines
 )
 
+# Interpolation library
+add_library(interpolation interpolation.F90)
+
+target_link_libraries(
+    interpolation
+    ctypes
+    constants
+    lagrange_poly
+    utils
+)
+
+
 # Create utilities
 add_library(io io.F90)
 
@@ -91,6 +103,7 @@ target_link_libraries(
     constants
     setup_source_location
     source_location
+    interpolation
     hdf5_utils
     hdf5_fortran-shared
 )
