@@ -34,6 +34,8 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 find_package(HDF5 REQUIRED)
 find_package(HDF5 COMPONENTS C Fortran HL)
 
+# Set location of C header files
+set(HEADER_FILES ${PROJECT_SOURCE_DIR}/include/config.h)
 
 # Set include directories
 include_directories(

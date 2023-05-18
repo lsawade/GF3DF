@@ -7,7 +7,7 @@ program open_file
 
   ! variable names
   character(len=65) :: filename ! input variable
-  integer :: ix, num_args
+  integer :: ix, num_args, k
   character(len=20), dimension(:), allocatable :: args
 
   type(t_GF) :: GF
@@ -34,8 +34,9 @@ program open_file
   call print_GF(GF)
 
   ! call setup_point_search_arrays(GF)
-  write(*,*) GF%networks
-  write(*,*) GF%stations
+  do k=1,size(GF%displacement, 1)
+    write(*,*) trim(GF%networks(k)),".",trim(GF%stations(k))
+  enddo
 
 
   call free_GF(GF)

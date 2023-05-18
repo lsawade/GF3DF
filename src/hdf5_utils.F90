@@ -756,7 +756,7 @@ contains
     integer(hid_t)     :: dset_id, filetype, memtype
     integer(hid_t)     :: dtype_id, space
     integer(size_t) :: size
-    integer(size_t), parameter :: sdim = 5
+    integer(size_t), parameter :: sdim = 32
     integer(hsize_t) :: dims(1)
     integer(hsize_t) :: maxdims(1)
     character(len=sdim), dimension(:), allocatable, target :: rdata(:)

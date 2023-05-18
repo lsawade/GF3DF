@@ -1,6 +1,7 @@
 module ctypes
 
   use constants, only: HUGEVAL
+  use calendar, only: julian_day
   implicit none
   private
 
@@ -25,8 +26,10 @@ module ctypes
       real(kind=8)                   :: hdur = 0
       real(kind=8)                   :: tc = 0
       real(kind=8)                   :: resolution_topo_file = 0
-      character(len=5), dimension(:), allocatable  :: networks, stations
+      character(len=8), dimension(:), allocatable  :: networks
+      character(len=32), dimension(:), allocatable  :: stations
       real(kind=8),     dimension(:), allocatable  :: latitudes, longitudes
+      real(kind=8),     dimension(:), allocatable  :: burials
 
       ! Interpolation points, weights, values, and derivatives
       double precision, dimension(:), allocatable :: xigll, yigll, zigll
@@ -50,6 +53,18 @@ module ctypes
 
     ! Whether Force or moment tensor source
     logical :: force = .false.
+
+    ! Eventname
+    character(len=30) :: eventname
+
+    ! Origin time parameters
+    integer :: year = 1999
+    integer :: month = 1
+    integer :: day = 1
+    integer :: jda = 1
+    integer :: hour = 0
+    integer :: minute = 0
+    double precision :: second = 0.d0
 
     ! Geographical parameters
     double precision :: colatitude = 0.d0

@@ -1,8 +1,18 @@
+# Library to read/write binary. Main use is to write SAC files.
+add_library(binary_c_io binary_c_io.c ${HEADER_FILES})
+target_include_directories(binary_c_io PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
+# Error function library. Used to make Heaviside functions to convolve with
+# the stored traces.
+add_library(error_functions error_functions.F90)
+
 # Create constants
 add_library(constants constants.F90)
 
+# Create constants
+add_library(calendar calendar.F90)
 
-# The compiled library code is here
+# The code for locating a source in the mesh is here
 add_subdirectory(meshlocation)
 
 # Create HDF5 utilities
@@ -12,6 +22,10 @@ target_link_libraries(hdf5_utils hdf5_fortran-shared)
 # Create types
 add_library(ctypes ctypes.F90)
 
+target_link_libraries(
+    ctypes
+    calendar
+)
 # Create utilities
 add_library(utils utils.F90)
 
@@ -78,11 +92,12 @@ target_link_libraries(
 
 
 # Create utilities
-add_library(io io.F90)
+add_library(io io.F90 ${HEADER_FILES})
 
 # Link the libraries.
 target_link_libraries(
     io
+    binary_c_io
     utils
     ctypes
     constants

@@ -42,7 +42,13 @@ module constants
   integer, parameter :: IIN = 40,IOUT = 41
 
   ! uncomment this to write messages to a text file
-  integer, parameter :: IMAIN = 6 !42
+  ! integer, parameter :: IMAIN = 42
+
+  ! uncomment this to write messages to the screen (slows down the code)
+  integer, parameter :: IMAIN = ISTANDARD_OUTPUT
+
+  ! I/O unit for sac files
+  integer, parameter :: IOUT_SAC = 48
 
   ! 3D simulation/mesh
   integer, parameter :: NDIM = 3
@@ -100,6 +106,13 @@ module constants
   ! the conversion codes too much
   logical, parameter :: USE_OLD_VERSION_5_1_5_FORMAT = .false.
 
+  ! Output related constants
+  integer :: NCHANNELS = 3
+  character(len=4), dimension(3) :: channels = (/"MXN", "MXE", "MXZ"/)
+  integer, dimension(3) :: orientation = (/1,2,3/)
 
+  ! maximum length of station and network name for receivers
+  integer, parameter :: MAX_LENGTH_STATION_NAME = 32
+  integer, parameter :: MAX_LENGTH_NETWORK_NAME = 8
 
 end module constants
