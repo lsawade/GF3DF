@@ -66,6 +66,15 @@ module ctypes
     integer :: minute = 0
     double precision :: second = 0.d0
 
+    ! PDE parameters
+    character(len=30) :: pde_desc = " PDE "
+    double precision :: pde_lat = 0.0
+    double precision :: pde_lon = 0.0
+    double precision :: pde_depth = 0.0
+    double precision :: pde_mb = 0.0
+    double precision :: pde_ms = 0.0
+    character(len=30) :: pde_region = "------"
+
     ! Geographical parameters
     double precision :: colatitude = 0.d0
     double precision :: latitude = 0.d0

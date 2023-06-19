@@ -40,6 +40,8 @@ target_link_libraries(
     gf3d
     utils
     ctypes
+    stf
+    fftpack
     setup_source_location
     hdf5_utils
     hdf5_fortran-shared

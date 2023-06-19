@@ -2,7 +2,7 @@
 module io
 
   private
-  public :: read_GF, print_GF, free_GF, write_output_SAC
+  public :: read_GF, print_GF, free_GF, write_output_SAC, read_cmt, print_source
 
 contains
 
@@ -107,6 +107,81 @@ contains
 
 
   end subroutine print_GF
+
+
+
+  subroutine print_source(source, which)
+
+    use ctypes, only: t_source
+    type(t_source) :: source
+    integer :: which ! 1 cmtsolution, 2 meshinfo, 3 both
+
+    ! meshinfo = .false.
+    ! if(present(meshinfoin)) then
+    !   meshinfo = meshinfoin
+    ! endif
+
+    ! Print format parameters
+    CHARACTER(LEN=30) :: charformat    = "(A15 A10)"
+    CHARACTER(LEN=30) :: integerformat = "(A25 I20)"
+    CHARACTER(LEN=30) :: realformat    = "(A15 F9.5)"
+    CHARACTER(LEN=30) :: realformat2   = "(A8  F20.8)"
+    CHARACTER(LEN=30) :: expformat     = "(A10 ES14.6)"
+    CHARACTER(LEN=30) :: expformat2    = "(A8 ES14.6)"
+    CHARACTER(LEN=50) :: PDEformat     = "(A5I4I3I3I3I3F6.2F9.4F10.4F6.1F4.1F4.1xA25)"
+
+    if (source%force .eqv. .true.) then
+      write (*,*) "Printing of Force source not yet implemented. Sorry."
+    else
+      ! Define Source
+      if ((which == 1) .or. (which == 3)) then
+        write (*,PDEformat) source%pde_desc, source%year, source%month, source%day, &
+                              source%hour, source%minute, source%second, &
+                              source%pde_lat, source%pde_lon, source%pde_depth, &
+                              source%pde_mb, source%pde_ms, source%pde_region
+        write (*,charformat) "event name:    ", source%eventname
+        write (*,realformat) "time shift:    ", source%time_shift
+        write (*,realformat) "half duration: ", source%hdur
+        write (*,realformat) "latitude:      ", source%latitude
+        write (*,realformat) "longitude:     ", source%longitude
+        write (*,realformat) "depth:         ", source%depth
+        write (*,expformat)  "Mrr:      ", source%Mrr
+        write (*,expformat)  "Mtt:      ", source%Mtt
+        write (*,expformat)  "Mpp:      ", source%Mpp
+        write (*,expformat)  "Mrt:      ", source%Mrt
+        write (*,expformat)  "Mrp:      ", source%Mrp
+        write (*,expformat)  "Mtp:      ", source%Mtp
+
+      endif
+
+
+      if ((which == 2) .or. (which == 3)) then
+        write(*,*) "Meshinfo: "
+        write(*,*) "------------------------------------------------"
+        write(*,expformat2)   "Mxx:    ", source%Mxx
+        write(*,expformat2)   "Myy:    ", source%Myy
+        write(*,expformat2)   "Mzz:    ", source%Mzz
+        write(*,expformat2)   "Mxy:    ", source%Mxy
+        write(*,expformat2)   "Mxz:    ", source%Mxz
+        write(*,expformat2)   "Myz:    ", source%Myz
+        write(*,realformat2) "x:      ", source%x
+        write(*,realformat2) "y:      ", source%y
+        write(*,realformat2) "z:      ", source%z
+        write(*,realformat2) "xix:    ", source%xix
+        write(*,realformat2) "xiy:    ", source%xiy
+        write(*,realformat2) "xiz:    ", source%xiz
+        write(*,realformat2) "etax:   ", source%etax
+        write(*,realformat2) "etay:   ", source%etay
+        write(*,realformat2) "etaz:   ", source%etaz
+        write(*,realformat2) "gammax: ", source%gammax
+        write(*,realformat2) "gammay: ", source%gammay
+        write(*,realformat2) "gammaz: ", source%gammaz
+        write(*,*) "------------------------------------------------"
+      endif
+
+    endif
+
+  end subroutine print_source
 
 
   subroutine load_header(file_id, GF)
@@ -513,6 +588,59 @@ contains
 
   end subroutine free_GF
 
+  !=====================================================================
+
+  function read_cmt(filename) result(sources)
+
+    use ctypes, only: t_source
+    use constants, only: IIN,IMAIN,PI,GRAV,MAX_STRING_LEN,R_PLANET,RHOAV, &
+                         NLINES_PER_CMTSOLUTION_SOURCE
+
+    ! In
+    character(len=*) :: filename
+
+    ! Local
+    integer :: ios,icounter,nline
+
+    ! Out
+    type(t_source), dimension(:), allocatable :: sources
+
+    ! Number of lines per solution
+    nline = NLINES_PER_CMTSOLUTION_SOURCE
+
+
+    ! Open file to read
+    open(unit=IIN,file=trim(filename),status='old',action='read',iostat=ios)
+
+    ! Check whether the number of lines is a multiple of the CMTSOLUTION format
+    icounter = 0
+    do while(ios == 0)
+      read(IIN,"(a)",iostat=ios) dummystring
+      if (ios == 0) icounter = icounter + 1
+    enddo
+
+    ! Close source file
+    close(IIN)
+
+    if (mod(icounter,nline) /= 0) then
+      stop 'total number of lines in CMTSOLUTION file should be a multiple of NLINES_PER_CMTSOLUTION_SOURCE'
+    endif
+
+    ! Get number of sources
+    NSOURCES = icounter / nline
+
+    if (NSOURCES < 1) then
+      print *,'Error: ',trim(filename),' has ', icounter, 'lines but need ', &
+             nline, 'per source... NSOURCES: ', NSOURCES
+      stop 'need at least one source in CMTSOLUTION or FORCESOLUTION file'
+    endif
+
+    write (*,*) "I reacheed past the cmtsolution file check."
+
+    ! Just for now
+    allocate(sources(1))
+
+  end function read_cmt
 
   !=====================================================================
 
@@ -691,7 +819,8 @@ contains
     ODELTA = undef       ! increment from delta
 
     ! begin time
-    btime = (seismo_offset)*DT - t0 + tshift_src
+    ! btime = (seismo_offset)*DT - t0 + tshift_src
+    btime = 0.d0 - t_shift + tshift_src
 
     B      = sngl(btime) ! [REQUIRED]
     E      = BYSAC       ! [REQUIRED]
@@ -786,11 +915,10 @@ contains
     NZMIN  = mi
 
     ! adds time-shift to get the CMT time in the headers as origin time of events
-    NZSEC  = int(sec+t_shift)
-    NZMSEC = int((sec+t_shift-int(sec+t_shift))*1000)
-
-    !NZSEC  =int(sec)
-    !NZMSEC =int((sec-int(sec))*1000)
+    ! NZSEC  = int(sec+t_shift)
+    ! NZMSEC = int((sec+t_shift-int(sec+t_shift))*1000)
+    NZSEC  =int(sec)
+    NZMSEC =int((sec-int(sec))*1000)
 
     ! Adjust event time and date after t_shift is added
     if (NZSEC >= 60) then
@@ -885,76 +1013,74 @@ contains
   530 format(A8,A16)
   540 format(A8,A8,A8)
 
+      !
+      ! now write actual header:
+      ! ------------------------
+      !
+      ! real variables:
+      !                                 DELTA     DEPMIN   DEPMAX   SCALE   ODELTA
+      !                                 B         E        O        A       INTERNAL
+      !                                 T0        T1       T2       T3      T4
+      !                                 T5        T6       T7       T8      T9
+      !                                 F         RESP0    RESP1    RESP2   RESP3
+      !                                 RESP4     RESP5    RESP6    RESP7   RESP8
+      !                                 RESP9     STLA     STLO     STEL    STDP
+      !                                 EVLA      EVLO     EVEL     EVDP    MAG
+      !                                 USER0     USER1    USER2    USER3   USER4
+      !                                 USER5     USER6    USER7    USER8   USER9
+      !                                 DIST      AZ       BAZ      GCARC   INTERNAL
+      !                                 INTERNAL  DEPMEN   CMPAZ    CMPINC  XMINIMUM
+      !                                 XMAXIMUM  YMINIMUM YMAXIMUM ADJTM   UNUSED
+      !
+      write(IOUT_SAC,510) DELTA,    DEPMIN,  DEPMAX,  SCALE_F,  ODELTA
+      write(IOUT_SAC,510) B,        E,       O,       A,      INTERNAL
+      write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
+      write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
+      write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
+      write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
+      write(IOUT_SAC,510) undef,    STLA,    STLO,    STEL,   STDP
+      write(IOUT_SAC,510) EVLA,     EVLO,    EVEL,    EVDP,   MAG
+      write(IOUT_SAC,510) USER0,    USER1,   USER2,   USER3,  USER4
+      write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
+      write(IOUT_SAC,510) DIST,     AZ,      BAZ,     GCARC,  INTERNAL
+      write(IOUT_SAC,510) INTERNAL, DEPMEN,  CMPAZ,   CMPINC, undef
+      write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
+      write(IOUT_SAC,510) UNUSED,   UNUSED,  UNUSED,  UNUSED, UNUSED
+      !
+      ! integer variables:
+      !                                 NSPTS, NWFID, NXSIZE, NYSIZE, UNUSED
+      !                                                                    IINST
+      !                                 ISTREG IEVREG IEVTYP IQUAL ISYNTH
+      !                                 IMAGTYP, IMAGSRC, UNUSED, UNUSED, UNUSED
+      !
+      write(IOUT_SAC,520) NZYEAR, NZJDAY, NZHOUR, NZMIN, NZSEC
+      write(IOUT_SAC,520) NZMSEC, NVHDR, NORID, NEVID, NPTS
+      write(IOUT_SAC,520) int(undef),int(undef),int(undef),int(undef),int(undef)
+      write(IOUT_SAC,520) IFTYPE, IDEP, IZTYPE, int(UNUSED), int(undef)
+      write(IOUT_SAC,520) int(undef),int(undef),IEVTYP, int(undef), ISYNTH
+      write(IOUT_SAC,520) IMAGTYP,int(undef),int(undef),int(undef),int(undef)
+      write(IOUT_SAC,520) int(UNUSED), int(UNUSED), int(UNUSED), int(UNUSED), int(UNUSED)
+      write(IOUT_SAC,520) LEVEN, LPSPOL, LOVROK, LCALDA, int(UNUSED)
+      write(IOUT_SAC,530) KSTNM, KEVNM
+      !
+      ! character variables:
+      !
+      !                                   KHOLE    KO       KA
+      !                                   KT0      KT1      KT2
+      !                                   KT3      KT4      KT5
+      !                                   KT6      KT7      KT8
+      !                                   KT9      KF       KUSER0
+      !                                   KUSER1     KUSER2       KCMPNM
+      !                                   KNETWK   KDATRD   KINST
+      !
+      write(IOUT_SAC,540) KHOLE,'-12345  ','-12345  '
+      write(IOUT_SAC,540) '-12345  ','-12345  ','-12345  '
+      write(IOUT_SAC,540) '-12345  ','-12345  ','-12345  '
+      write(IOUT_SAC,540) '-12345  ','-12345  ','-12345  '
+      write(IOUT_SAC,540) '-12345  ','-12345  ',KUSER0
+      write(IOUT_SAC,540)   KUSER1, KUSER2, KCMPNM
+      write(IOUT_SAC,540)   KNETWK,'-12345  ','-12345  '
 
-      if (seismo_offset == 0) then
-        !
-        ! now write actual header:
-        ! ------------------------
-        !
-        ! real variables:
-        !                                 DELTA     DEPMIN   DEPMAX   SCALE   ODELTA
-        !                                 B         E        O        A       INTERNAL
-        !                                 T0        T1       T2       T3      T4
-        !                                 T5        T6       T7       T8      T9
-        !                                 F         RESP0    RESP1    RESP2   RESP3
-        !                                 RESP4     RESP5    RESP6    RESP7   RESP8
-        !                                 RESP9     STLA     STLO     STEL    STDP
-        !                                 EVLA      EVLO     EVEL     EVDP    MAG
-        !                                 USER0     USER1    USER2    USER3   USER4
-        !                                 USER5     USER6    USER7    USER8   USER9
-        !                                 DIST      AZ       BAZ      GCARC   INTERNAL
-        !                                 INTERNAL  DEPMEN   CMPAZ    CMPINC  XMINIMUM
-        !                                 XMAXIMUM  YMINIMUM YMAXIMUM ADJTM   UNUSED
-        !
-        write(IOUT_SAC,510) DELTA,    DEPMIN,  DEPMAX,  SCALE_F,  ODELTA
-        write(IOUT_SAC,510) B,        E,       O,       A,      INTERNAL
-        write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
-        write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
-        write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
-        write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
-        write(IOUT_SAC,510) undef,    STLA,    STLO,    STEL,   STDP
-        write(IOUT_SAC,510) EVLA,     EVLO,    EVEL,    EVDP,   MAG
-        write(IOUT_SAC,510) USER0,    USER1,   USER2,   USER3,  USER4
-        write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
-        write(IOUT_SAC,510) DIST,     AZ,      BAZ,     GCARC,  INTERNAL
-        write(IOUT_SAC,510) INTERNAL, DEPMEN,  CMPAZ,   CMPINC, undef
-        write(IOUT_SAC,510) undef,    undef,   undef,   undef,  undef
-        write(IOUT_SAC,510) UNUSED,   UNUSED,  UNUSED,  UNUSED, UNUSED
-        !
-        ! integer variables:
-        !                                 NSPTS, NWFID, NXSIZE, NYSIZE, UNUSED
-        !                                                                    IINST
-        !                                 ISTREG IEVREG IEVTYP IQUAL ISYNTH
-        !                                 IMAGTYP, IMAGSRC, UNUSED, UNUSED, UNUSED
-        !
-        write(IOUT_SAC,520) NZYEAR, NZJDAY, NZHOUR, NZMIN, NZSEC
-        write(IOUT_SAC,520) NZMSEC, NVHDR, NORID, NEVID, NPTS
-        write(IOUT_SAC,520) int(undef),int(undef),int(undef),int(undef),int(undef)
-        write(IOUT_SAC,520) IFTYPE, IDEP, IZTYPE, int(UNUSED), int(undef)
-        write(IOUT_SAC,520) int(undef),int(undef),IEVTYP, int(undef), ISYNTH
-        write(IOUT_SAC,520) IMAGTYP,int(undef),int(undef),int(undef),int(undef)
-        write(IOUT_SAC,520) int(UNUSED), int(UNUSED), int(UNUSED), int(UNUSED), int(UNUSED)
-        write(IOUT_SAC,520) LEVEN, LPSPOL, LOVROK, LCALDA, int(UNUSED)
-        write(IOUT_SAC,530) KSTNM, KEVNM
-        !
-        ! character variables:
-        !
-        !                                   KHOLE    KO       KA
-        !                                   KT0      KT1      KT2
-        !                                   KT3      KT4      KT5
-        !                                   KT6      KT7      KT8
-        !                                   KT9      KF       KUSER0
-        !                                   KUSER1     KUSER2       KCMPNM
-        !                                   KNETWK   KDATRD   KINST
-        !
-        write(IOUT_SAC,540) KHOLE,'-12345  ','-12345  '
-        write(IOUT_SAC,540) '-12345  ','-12345  ','-12345  '
-        write(IOUT_SAC,540) '-12345  ','-12345  ','-12345  '
-        write(IOUT_SAC,540) '-12345  ','-12345  ','-12345  '
-        write(IOUT_SAC,540) '-12345  ','-12345  ',KUSER0
-        write(IOUT_SAC,540)   KUSER1, KUSER2, KCMPNM
-        write(IOUT_SAC,540)   KNETWK,'-12345  ','-12345  '
-      endif
 
       ! now write data - with five values per row:
       ! ---------------
@@ -1008,158 +1134,150 @@ contains
       write(sisname_2,"('/',a,'.sac')") trim(sisname)
 
       ! open binary file
-      if (seismo_offset == 0) then
-        call open_file_create(trim(OUTPUT_DIR)//trim(sisname_2)//char(0))
-      else
-        call open_file_append(trim(OUTPUT_DIR)//trim(sisname_2)//char(0))
-      endif
+      call open_file_create(trim(OUTPUT_DIR)//trim(sisname_2)//char(0))
 
-      if (seismo_offset == 0) then
-        ! write header variables
+      ! write header variables
+      ! write single precision header variables 1:70
+      call write_real(DELTA)         !(1)
+      call write_real(DEPMIN)        !(2)
+      call write_real(DEPMAX)        !(3)
+      call write_real(SCALE_F)       !(4)
+      call write_real(ODELTA)        !(5)
+      call write_real(B)             !(6)
+      call write_real(E)             !(7)
+      call write_real(O)             !(8)
+      call write_real(A)             !(9)
+      call write_real(INTERNAL)      !(10)
+      call write_real(undef)          !(11)T0
+      call write_real(undef)          !(12)T1
+      call write_real(undef)          !(13)T2
+      call write_real(undef)          !(14)T3
+      call write_real(undef)          !(15)T4
+      call write_real(undef)          !(16)T5
+      call write_real(undef)          !(17)T6
+      call write_real(undef)          !(18)T7
+      call write_real(undef)          !(19)T8
+      call write_real(undef)          !(20)T9
+      call write_real(undef)          !(21)F
+      call write_real(undef)          !(22)RESP0
+      call write_real(undef)          !(23)RESP1
+      call write_real(undef)          !(24)RESP2
+      call write_real(undef)          !(25)RESP3
+      call write_real(undef)          !(26)RESP4
+      call write_real(undef)          !(27)RESP5
+      call write_real(undef)          !(28)RESP6
+      call write_real(undef)          !(29)RESP7
+      call write_real(undef)          !(30)RESP8
+      call write_real(undef)          !(31)RESP9
+      call write_real(STLA)          !(32)
+      call write_real(STLO)          !(33)
+      call write_real(STEL)          !(34)
+      call write_real(STDP)          !(35)
+      call write_real(EVLA)          !(36)
+      call write_real(EVLO)          !(37)
+      call write_real(EVEL)          !(38)
+      call write_real(EVDP)          !(39)
+      call write_real(MAG)           !(40)
+      call write_real(USER0)         !(41)USER0
+      call write_real(USER1)         !(42)USER1
+      call write_real(USER2)         !(43)USER2
+      call write_real(undef)         !(44)USER3
+      call write_real(undef)          !(45)USER4
+      call write_real(undef)          !(46)USER5
+      call write_real(undef)          !(47)USER6
+      call write_real(undef)          !(48)USER7
+      call write_real(undef)          !(49)USER8
+      call write_real(undef)          !(50)USER9
+      call write_real(DIST)          !(51)
+      call write_real(AZ)            !(52)
+      call write_real(BAZ)           !(53)
+      call write_real(GCARC)         !(54)
+      call write_real(INTERNAL)      !(55)
+      call write_real(INTERNAL)      !(56)
+      call write_real(DEPMEN)        !(57)
+      call write_real(CMPAZ)         !(58)
+      call write_real(CMPINC)        !(59)
+      call write_real(undef)          !(60)XMINIMUM
+      call write_real(undef)          !(61)XMAXIMUM
+      call write_real(undef)          !(62)YMINIMUM
+      call write_real(undef)          !(63)YMAXIMUM
+      call write_real(undef)          !(64)
+      call write_real(undef)          !(65)
+      call write_real(undef)          !(66)
+      call write_real(undef)          !(67)
+      call write_real(undef)          !(68)
+      call write_real(undef)          !(69)
+      call write_real(undef)          !(70)
 
-        ! write single precision header variables 1:70
-        call write_real(DELTA)         !(1)
-        call write_real(DEPMIN)        !(2)
-        call write_real(DEPMAX)        !(3)
-        call write_real(SCALE_F)       !(4)
-        call write_real(ODELTA)        !(5)
-        call write_real(B)             !(6)
-        call write_real(E)             !(7)
-        call write_real(O)             !(8)
-        call write_real(A)             !(9)
-        call write_real(INTERNAL)      !(10)
-        call write_real(undef)          !(11)T0
-        call write_real(undef)          !(12)T1
-        call write_real(undef)          !(13)T2
-        call write_real(undef)          !(14)T3
-        call write_real(undef)          !(15)T4
-        call write_real(undef)          !(16)T5
-        call write_real(undef)          !(17)T6
-        call write_real(undef)          !(18)T7
-        call write_real(undef)          !(19)T8
-        call write_real(undef)          !(20)T9
-        call write_real(undef)          !(21)F
-        call write_real(undef)          !(22)RESP0
-        call write_real(undef)          !(23)RESP1
-        call write_real(undef)          !(24)RESP2
-        call write_real(undef)          !(25)RESP3
-        call write_real(undef)          !(26)RESP4
-        call write_real(undef)          !(27)RESP5
-        call write_real(undef)          !(28)RESP6
-        call write_real(undef)          !(29)RESP7
-        call write_real(undef)          !(30)RESP8
-        call write_real(undef)          !(31)RESP9
-        call write_real(STLA)          !(32)
-        call write_real(STLO)          !(33)
-        call write_real(STEL)          !(34)
-        call write_real(STDP)          !(35)
-        call write_real(EVLA)          !(36)
-        call write_real(EVLO)          !(37)
-        call write_real(EVEL)          !(38)
-        call write_real(EVDP)          !(39)
-        call write_real(MAG)           !(40)
-        call write_real(USER0)         !(41)USER0
-        call write_real(USER1)         !(42)USER1
-        call write_real(USER2)         !(43)USER2
-        call write_real(undef)         !(44)USER3
-        call write_real(undef)          !(45)USER4
-        call write_real(undef)          !(46)USER5
-        call write_real(undef)          !(47)USER6
-        call write_real(undef)          !(48)USER7
-        call write_real(undef)          !(49)USER8
-        call write_real(undef)          !(50)USER9
-        call write_real(DIST)          !(51)
-        call write_real(AZ)            !(52)
-        call write_real(BAZ)           !(53)
-        call write_real(GCARC)         !(54)
-        call write_real(INTERNAL)      !(55)
-        call write_real(INTERNAL)      !(56)
-        call write_real(DEPMEN)        !(57)
-        call write_real(CMPAZ)         !(58)
-        call write_real(CMPINC)        !(59)
-        call write_real(undef)          !(60)XMINIMUM
-        call write_real(undef)          !(61)XMAXIMUM
-        call write_real(undef)          !(62)YMINIMUM
-        call write_real(undef)          !(63)YMAXIMUM
-        call write_real(undef)          !(64)
-        call write_real(undef)          !(65)
-        call write_real(undef)          !(66)
-        call write_real(undef)          !(67)
-        call write_real(undef)          !(68)
-        call write_real(undef)          !(69)
-        call write_real(undef)          !(70)
+      ! write integer header variables 71:105
+      call write_integer(NZYEAR)        !(71)
+      call write_integer(NZJDAY)        !(72)
+      call write_integer(NZHOUR)        !(73)
+      call write_integer(NZMIN)         !(74)
+      call write_integer(NZSEC)         !(75)
+      call write_integer(NZMSEC)        !(76)
+      call write_integer(NVHDR)         !(77)
+      call write_integer(NORID)         !(78)
+      call write_integer(NEVID)         !(79)
+      call write_integer(NPTS)          !(80)
+      call write_integer(int(undef))     !(81)UNUSED
+      call write_integer(int(undef))     !(82)NWFID
+      call write_integer(int(undef))     !(83)NXSIZE
+      call write_integer(int(undef))     !(84)NYSIZE
+      call write_integer(int(undef))     !(85)UNUSED
+      call write_integer(IFTYPE)        !(86)
+      call write_integer(IDEP)          !(87)
+      call write_integer(IZTYPE)        !(88)
+      call write_integer(int(undef))     !(89)UNUSED
+      call write_integer(int(undef))     !(90)IINST
+      call write_integer(int(undef))     !(91)ISTREG
+      call write_integer(int(undef))     !(92)IEVREG
+      call write_integer(IEVTYP)        !(93)
+      call write_integer(IQUAL)         !(94)
+      call write_integer(ISYNTH)        !(95)
+      call write_integer(IMAGTYP)       !(96)
+      call write_integer(int(undef))     !(97)IMAGSRC
+      call write_integer(int(UNUSED))   !(98)
+      call write_integer(int(UNUSED))   !(99)
+      call write_integer(int(UNUSED))   !(100)
+      call write_integer(int(UNUSED))   !(101)
+      call write_integer(int(UNUSED))   !(102)
+      call write_integer(int(UNUSED))   !(103)
+      call write_integer(int(UNUSED))   !(104)
+      call write_integer(int(UNUSED))   !(105)
 
-        ! write integer header variables 71:105
-        call write_integer(NZYEAR)        !(71)
-        call write_integer(NZJDAY)        !(72)
-        call write_integer(NZHOUR)        !(73)
-        call write_integer(NZMIN)         !(74)
-        call write_integer(NZSEC)         !(75)
-        call write_integer(NZMSEC)        !(76)
-        call write_integer(NVHDR)         !(77)
-        call write_integer(NORID)         !(78)
-        call write_integer(NEVID)         !(79)
-        call write_integer(NPTS)          !(80)
-        call write_integer(int(undef))     !(81)UNUSED
-        call write_integer(int(undef))     !(82)NWFID
-        call write_integer(int(undef))     !(83)NXSIZE
-        call write_integer(int(undef))     !(84)NYSIZE
-        call write_integer(int(undef))     !(85)UNUSED
-        call write_integer(IFTYPE)        !(86)
-        call write_integer(IDEP)          !(87)
-        call write_integer(IZTYPE)        !(88)
-        call write_integer(int(undef))     !(89)UNUSED
-        call write_integer(int(undef))     !(90)IINST
-        call write_integer(int(undef))     !(91)ISTREG
-        call write_integer(int(undef))     !(92)IEVREG
-        call write_integer(IEVTYP)        !(93)
-        call write_integer(IQUAL)         !(94)
-        call write_integer(ISYNTH)        !(95)
-        call write_integer(IMAGTYP)       !(96)
-        call write_integer(int(undef))     !(97)IMAGSRC
-        call write_integer(int(UNUSED))   !(98)
-        call write_integer(int(UNUSED))   !(99)
-        call write_integer(int(UNUSED))   !(100)
-        call write_integer(int(UNUSED))   !(101)
-        call write_integer(int(UNUSED))   !(102)
-        call write_integer(int(UNUSED))   !(103)
-        call write_integer(int(UNUSED))   !(104)
-        call write_integer(int(UNUSED))   !(105)
-
-        ! write logical header variables 106:110
-        call write_integer(LEVEN)         !(106)
-        call write_integer(LPSPOL)        !(107)
-        call write_integer(LOVROK)        !(108)
-        call write_integer(LCALDA)        !(109)
-        call write_integer(int(UNUSED))   !(110)
+      ! write logical header variables 106:110
+      call write_integer(LEVEN)         !(106)
+      call write_integer(LPSPOL)        !(107)
+      call write_integer(LOVROK)        !(108)
+      call write_integer(LCALDA)        !(109)
+      call write_integer(int(UNUSED))   !(110)
 
 
-        ! write character header variables 111:302
-        call write_character(KSTNM,8)         !(111:118)
-        call write_character(KEVNM,16)         !(119:134)
-        call write_character(KHOLE,8)          !(135:142)KHOLE
-        call write_character(str_undef,8)      !(143:150)KO
-        call write_character(str_undef,8)      !(151:158)KA
-        call write_character(str_undef,8)      !(159:166)KT0
-        call write_character(str_undef,8)      !(167:174)KT1
-        call write_character(str_undef,8)      !(175:182)KT2
-        call write_character(str_undef,8)      !(183:190)KT3
-        call write_character(str_undef,8)      !(191:198)KT4
-        call write_character(str_undef,8)      !(199:206)KT5
-        call write_character(str_undef,8)      !(207:214)KT6
-        call write_character(str_undef,8)      !(215:222)KT7
-        call write_character(str_undef,8)      !(223:230)KT8
-        call write_character(str_undef,8)      !(231:238)KT9
-        call write_character(str_undef,8)      !(239:246)KF
-        call write_character(KUSER0,8)        !(247:254)
-        call write_character(KUSER1,8)        !(255:262)
-        call write_character(KUSER2,8)        !(263:270)
-        call write_character(KCMPNM,8)        !(271:278)
-        call write_character(KNETWK,8)        !(279:286)
-        call write_character(str_undef,8)      !(287:294)KDATRD
-        call write_character(str_undef,8)      !(295:302)KINST
-
-      endif
+      ! write character header variables 111:302
+      call write_character(KSTNM,8)         !(111:118)
+      call write_character(KEVNM,16)         !(119:134)
+      call write_character(KHOLE,8)          !(135:142)KHOLE
+      call write_character(str_undef,8)      !(143:150)KO
+      call write_character(str_undef,8)      !(151:158)KA
+      call write_character(str_undef,8)      !(159:166)KT0
+      call write_character(str_undef,8)      !(167:174)KT1
+      call write_character(str_undef,8)      !(175:182)KT2
+      call write_character(str_undef,8)      !(183:190)KT3
+      call write_character(str_undef,8)      !(191:198)KT4
+      call write_character(str_undef,8)      !(199:206)KT5
+      call write_character(str_undef,8)      !(207:214)KT6
+      call write_character(str_undef,8)      !(215:222)KT7
+      call write_character(str_undef,8)      !(223:230)KT8
+      call write_character(str_undef,8)      !(231:238)KT9
+      call write_character(str_undef,8)      !(239:246)KF
+      call write_character(KUSER0,8)        !(247:254)
+      call write_character(KUSER1,8)        !(255:262)
+      call write_character(KUSER2,8)        !(263:270)
+      call write_character(KCMPNM,8)        !(271:278)
+      call write_character(KNETWK,8)        !(279:286)
+      call write_character(str_undef,8)      !(287:294)KDATRD
+      call write_character(str_undef,8)      !(295:302)KINST
 
       ! now write SAC time series to file
       ! BS BS write whole time series at once (hope to increase I/O performance

@@ -15,6 +15,11 @@ add_library(calendar calendar.F90)
 # The code for locating a source in the mesh is here
 add_subdirectory(meshlocation)
 
+# FFT routines from netlib
+add_subdirectory(fftpack-sources)
+
+# add_library(fftpack ${FFTPACK_SOURCES})
+
 # Create HDF5 utilities
 add_library(hdf5_utils hdf5_utils.F90)
 target_link_libraries(hdf5_utils hdf5_fortran-shared)
@@ -105,6 +110,13 @@ target_link_libraries(
     lagrange_poly
     hdf5_utils
     hdf5_fortran-shared
+)
+
+# Source time function library
+add_library(stf stf.F90)
+target_link_libraries(
+    stf
+    error_functions
 )
 
 add_library(gf3d gf3d.F90)

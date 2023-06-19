@@ -1,9 +1,12 @@
 # %%
+import sys
 from obspy import read
 from gf3d.source import CMTSOLUTION
 from gf3d.seismograms import GFManager
 from gf3d.plot.seismogram import plotseismogram
+from gf3d.process import process_stream
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 #%% Get CMT source
 # Actual values for half duration and timeshift
@@ -13,8 +16,8 @@ import matplotlib.pyplot as plt
 cmtfile = """
  PDEW2015  9 16 22 54 32.90 -31.5700  -71.6700  22.4 0.0 8.3 NEAR COAST OF CENTRAL CH
 event name:     201509162254A
-time shift:     0.00000
-half duration:  0.00000
+time shift:      50.00000
+half duration:  33.40000
 latitude:      -31.1300
 longitude:     -72.0900
 depth:          17.3500
@@ -39,12 +42,74 @@ st = gfm.get_seismograms(cmt)
 
 bfopy = st.select(station='BFO')
 
+# bfopy.differentiate()
+
+pbfopy = process_stream(bfopy, cmt=cmt)
+
 #%% Read seismograms from fortran
-factor = 5
 bfof = read('OUTPUT/II.BFO.*.sac')
 
-for tr in bfof:
-    tr.data *= factor
+# factor = 1
+# for tr in bfof:
 
-plotseismogram(bfopy, bfof, cmt)
-plt.savefig('testplot.png', dpi=300)
+#     tr.data *= factor
+
+pbfof = process_stream(bfof, cmt=cmt)
+plotseismogram(pbfopy, pbfof, cmt, nooffset=True, lw=0.25)
+plt.savefig('testplot_nooffset.pdf', dpi=300)
+plotseismogram(pbfopy, pbfof, cmt, nooffset=False, lw=0.25)
+plt.savefig('testplot.pdf', dpi=300)
+
+plt.close('all')
+
+
+#%%
+stf = read('OUTPUT/STF.ERF.TIM.sem.sac')
+plt.figure()
+plt.close('all')
+fig = plt.figure(figsize=(7, 7))
+
+ax = plt.subplot(3,1,1)
+plt.plot(stf[0].times("matplotlib"), stf[0].data, '-', c='k', lw=0.5, label='STF')
+plt.xlabel('Time')
+plt.ylabel('A')
+
+ax.xaxis_date()
+ax.xaxis.set_major_formatter(
+    mdates.ConciseDateFormatter(ax.xaxis.get_major_locator()))
+ax.tick_params(labelleft=True, left=False)
+ax.spines.right.set_visible(False)
+# ax.spines.left.set_visible(False)
+ax.spines.top.set_visible(False)
+
+fstf = read('OUTPUT/STF.ERF.FRE.sem.sac')
+ax = plt.subplot(3,1,2)
+plt.plot(fstf[0].times("matplotlib"), fstf[0].data, '-', c='k', lw=0.5, label='STF')
+plt.xlabel('Time')
+plt.ylabel('A')
+
+ax.xaxis_date()
+ax.xaxis.set_major_formatter(
+    mdates.ConciseDateFormatter(ax.xaxis.get_major_locator()))
+ax.tick_params(labelleft=True, left=False)
+ax.spines.right.set_visible(False)
+# ax.spines.left.set_visible(False)
+ax.spines.top.set_visible(False)
+
+istf = read('OUTPUT/STF.ERF.IFR.sem.sac')
+ax = plt.subplot(3,1,3)
+plt.plot(istf[0].times("matplotlib"), istf[0].data, '-', c='k', lw=0.5, label='STF')
+# plt.plot(istf[0].times("matplotlib"), istf[0].data - stf[0].data, '-', c='b', lw=1.0, label='STF')
+plt.xlabel('Time')
+plt.ylabel('A')
+
+ax.xaxis_date()
+ax.xaxis.set_major_formatter(
+    mdates.ConciseDateFormatter(ax.xaxis.get_major_locator()))
+ax.tick_params(labelleft=True, left=False)
+ax.spines.right.set_visible(False)
+# ax.spines.left.set_visible(False)
+ax.spines.top.set_visible(False)
+
+
+plt.savefig('STF.png', dpi=300)

@@ -46,6 +46,13 @@ include_directories(
 message(HDF5_INCLUDE_DIRS="${HDF5_INCLUDE_DIRS}")
 message(HDF5_LIBRARIES="${HDF5_LIBRARIES}")
 
+# include(FetchContent) # once in the project to include the module
+
+# FetchContent_Declare(fftpack
+#                      GIT_REPOSITORY https://github.com/fortran-lang/fftpack
+#                      GIT_TAG        113982e)
+# FetchContent_MakeAvailable(fftpack)
+
 
 # The compiled library code is here
 add_subdirectory(src)

@@ -115,4 +115,8 @@ module constants
   integer, parameter :: MAX_LENGTH_STATION_NAME = 32
   integer, parameter :: MAX_LENGTH_NETWORK_NAME = 8
 
+  ! Lines in the source files
+  integer, parameter :: NLINES_PER_CMTSOLUTION_SOURCE = 13
+  integer, parameter :: NLINES_PER_FORCESOLUTION_SOURCE = 11
+
 end module constants
