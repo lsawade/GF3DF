@@ -101,7 +101,6 @@ program open_file
     seismograms)
 
 
-
   hdur_diff = correct_hdur(sources(1)%hdur, GF%hdur)
 
   t0 = 0.d0

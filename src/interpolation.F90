@@ -20,7 +20,7 @@ contains
     double precision, dimension(:,:,:,:,:,:,:), intent(in) :: displacement
     integer :: NSTAT, NGLLX, NGLLY, NGLLZ
     integer(kind=8) :: NT
-    double precision :: Mxx, Myy, Mzz, Mxy, Mxz, Myz
+    double precision, intent(in) :: Mxx, Myy, Mzz, Mxy, Mxz, Myz
     double precision,intent(in) :: xi,eta,gamma
     double precision, intent(in) :: xix, xiy, xiz
     double precision, intent(in) :: etax, etay, etaz
@@ -43,6 +43,9 @@ contains
     integer :: NCOMP = 3
 
     allocate(epsilon(NSTAT, NCOMP, 6, NT))
+
+    ! Initialize(!) we are summing over this one!
+    epsilon(:,:,:,:) = 0.d0
 
     ! Get interpolation values
     call lagrange_any(xi,NGLLX,xigll,hxi,hpxi)

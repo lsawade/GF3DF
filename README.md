@@ -1,5 +1,8 @@
 # Fortran bindings to read GF3D produced Subset files
 
+Only really tested with `gfortran`. There maybe portability issues with `INQUIRE`
+routine.
+
 Make sure the `HDF5_ROOT` variable is set.
 ```bash
 export HDF5_ROOT=/path/to/hdf5

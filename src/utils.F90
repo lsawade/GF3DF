@@ -3,7 +3,7 @@ module utils
   implicit none
   private
   public :: throwerror, scaleM, nextpower2, is_digit, is_numeric, get_args, &
-            file_exists, dir_exists
+            file_exists, dir_exists, dir_writeable, delete_file, mkdir
 
 contains
 
@@ -83,6 +83,7 @@ contains
 
   end function
 
+  !---------------------------------------------------------------------------
 
   function get_args() result(args)
 
@@ -102,22 +103,25 @@ contains
 
   end function
 
+  !---------------------------------------------------------------------------
 
   logical function dir_exists(dirname)
 
     implicit none
     character(len=*) :: dirname
 
-    INQUIRE (FILE=trim(dirname), EXIST=dir_exists)
+    inquire (file=trim(dirname), exist=dir_exists)
 
   end function dir_exists
+
+  !---------------------------------------------------------------------------
 
   logical function file_exists(filename)
 
     implicit none
     character(len=*) :: filename
 
-    INQUIRE (FILE=trim(filename), EXIST=file_exists)
+    inquire (file=trim(filename), exist=file_exists)
 
   end function file_exists
 
@@ -128,37 +132,52 @@ contains
 
   end function dir_empty
 
+  !---------------------------------------------------------------------------
 
-  logical function dir_writeable(dirname)
+  function dir_writeable(dirname) result(res)
 
     implicit none
     character(len=*), intent(in) :: dirname
-    integer :: unitno
+    integer :: unitno = 1234
     integer :: stat
+    logical :: res
     character(len=30) :: testfile = 'deleteme.txt'
 
     ! Test whether the directory exists
-    open(newunit=unitno,file=trim(dirname)//trim(testfile),status='replace',iostat=stat)
+    open(newunit=unitno,file=trim(dirname)//'/'//trim(testfile),status='replace',iostat=stat)
 
-    if (stat .neq. 0) then
+    if (stat .ne. 0) then
 
-      dir_writeable = .false.
+      res = .false.
 
-    ! if exists close unit, set writable to true and delete temp file
+    ! if exists close unit, set writeable to true and delete temp file
     else
       close (unitno)
-      dir_writeable = .true.
-      call delete_file(trim(dirname)//trim(testfile))
+      res = .true.
+
+      call delete_file(trim(dirname)//'/'//trim(testfile))
     endif
 
   end function dir_writeable
 
+  !---------------------------------------------------------------------------
+
   subroutine delete_file(filename)
+
+    character(len=*) :: filename
+    integer :: stat
 
     open(unit=1234, iostat=stat, file=filename, status='old')
     if (stat == 0) close(1234, status='delete')
 
   end subroutine
+
+  subroutine mkdir(dirname)
+    character(len=*) :: dirname
+
+    call system('mkdir ' // trim(dirname))
+
+  end subroutine mkdir
 
   ! logical function file_exists(filename)
 

@@ -959,11 +959,11 @@ contains
 
     logical, intent(in) :: OUTPUT_SEISMOS_SAC_ALPHANUM
     logical, intent(in) :: OUTPUT_SEISMOS_SAC_BINARY
-    character(len=MAX_STRING_LEN), intent(in) :: MODEL
-    character(len=MAX_STRING_LEN), intent(in) :: OUTPUT_DIR
+    character(len=*), intent(in) :: MODEL
+    character(len=*), intent(in) :: OUTPUT_DIR
 
     ! Station parameters
-    character(len=MAX_STRING_LEN), intent(in) :: sisname
+    character(len=*), intent(in) :: sisname
     character(len=8), intent(in) :: network_name
     character(len=32), intent(in) :: station_name
     character(len=4), intent(in) :: chn
@@ -1401,7 +1401,6 @@ contains
 
       ! open binary file
       call open_file_create(trim(OUTPUT_DIR)//trim(sisname_2)//char(0))
-
       ! write header variables
       ! write single precision header variables 1:70
       call write_real(DELTA)         !(1)
