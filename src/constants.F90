@@ -98,9 +98,11 @@ module constants
   ! Node setup
   integer, parameter :: NGNOD  = 27
 
-
   ! Conversion for the source triangle
   double precision, parameter :: SOURCE_DECAY_MIMIC_TRIANGLE = 1.628
+
+  ! Shift used to convolved STF with
+  double precision, parameter :: STF_SHIFT = 200.d0
 
   ! Parameter used in coordinate conversion. Kept to not change
   ! the conversion codes too much

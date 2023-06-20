@@ -34,9 +34,9 @@ target_link_libraries(
     hdf5_fortran-shared
 )
 
-add_executable(gf3d-write-seismograms write_seismograms.F90)
+add_executable(gf3d-get-seismograms get_seismograms.F90)
 target_link_libraries(
-    gf3d-write-seismograms
+    gf3d-get-seismograms
     gf3d
     utils
     ctypes

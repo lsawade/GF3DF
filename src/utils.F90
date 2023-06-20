@@ -2,9 +2,11 @@ module utils
 
   implicit none
   private
-  public :: throwerror, scaleM, nextpower2
+  public :: throwerror, scaleM, nextpower2, is_digit, is_numeric
 
 contains
+
+  ! --------------------------------------------------------------------------
 
   subroutine throwerror(errorflag, message)
 
@@ -25,6 +27,8 @@ contains
 
   end subroutine throwerror
 
+  ! --------------------------------------------------------------------------
+
   double precision function scaleM(M)
 
     use constants, only: RHOAV, R_PLANET, PI, GRAV
@@ -35,11 +39,47 @@ contains
 
   end function scaleM
 
-  pure integer  function nextpower2(x_in)
+  ! --------------------------------------------------------------------------
+
+  pure integer function nextpower2(x_in)
     integer, intent(in)::x_in
     real ::x
     x = x_in
     nextpower2 = 2**(floor(log(x)/log(2.0))+1)
   end function nextpower2
+
+  ! --------------------------------------------------------------------------
+
+  logical function is_numeric(char)
+
+    ! returns .true. if input character is a number
+
+    implicit none
+    character(len=1), intent(in) :: char
+
+    is_numeric = .false.
+
+    if ( index('0123456789', char) /= 0) then
+      is_numeric = .true.
+    endif
+
+  end function
+
+  !---------------------------------------------------------------------------
+
+  logical function is_digit(char)
+
+    ! returns .true. if input character is a number or a '.'
+
+    implicit none
+    character(len=1), intent(in) :: char
+
+    is_digit = .false.
+
+    if ( index('0123456789.', char) /= 0) then
+      is_digit = .true.
+    endif
+
+  end function
 
 end module

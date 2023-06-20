@@ -116,19 +116,14 @@ contains
     type(t_source) :: source
     integer :: which ! 1 cmtsolution, 2 meshinfo, 3 both
 
-    ! meshinfo = .false.
-    ! if(present(meshinfoin)) then
-    !   meshinfo = meshinfoin
-    ! endif
-
     ! Print format parameters
-    CHARACTER(LEN=30) :: charformat    = "(A15 A10)"
+    CHARACTER(LEN=30) :: charformat    = "(A15 A30)"
     CHARACTER(LEN=30) :: integerformat = "(A25 I20)"
-    CHARACTER(LEN=30) :: realformat    = "(A15 F9.5)"
+    CHARACTER(LEN=30) :: realformat    = "(A14 F10.5)"
     CHARACTER(LEN=30) :: realformat2   = "(A8  F20.8)"
     CHARACTER(LEN=30) :: expformat     = "(A10 ES14.6)"
     CHARACTER(LEN=30) :: expformat2    = "(A8 ES14.6)"
-    CHARACTER(LEN=50) :: PDEformat     = "(A5I4I3I3I3I3F6.2F9.4F10.4F6.1F4.1F4.1xA25)"
+    CHARACTER(LEN=50) :: PDEformat     = "(xA4I4I3I3I3I3F6.2F9.4F10.4F6.1F4.1F4.1xA25)"
 
     if (source%force .eqv. .true.) then
       write (*,*) "Printing of Force source not yet implemented. Sorry."
@@ -156,7 +151,7 @@ contains
 
 
       if ((which == 2) .or. (which == 3)) then
-        write(*,*) "Meshinfo: "
+        write(*,*) "Source Meshinfo:"
         write(*,*) "------------------------------------------------"
         write(*,expformat2)   "Mxx:    ", source%Mxx
         write(*,expformat2)   "Myy:    ", source%Myy
@@ -592,15 +587,22 @@ contains
 
   function read_cmt(filename) result(sources)
 
+    ! Import statements
     use ctypes, only: t_source
     use constants, only: IIN,IMAIN,PI,GRAV,MAX_STRING_LEN,R_PLANET,RHOAV, &
                          NLINES_PER_CMTSOLUTION_SOURCE
+    use utils, only: is_digit, is_numeric
+    use calendar, only: julian_day
 
     ! In
     character(len=*) :: filename
 
     ! Local
     integer :: ios,icounter,nline
+    integer :: yr,jda,ho,mi,mo,da
+
+    character(len=256) :: string
+    character(len=256) :: eventname
 
     ! Out
     type(t_source), dimension(:), allocatable :: sources
@@ -638,8 +640,268 @@ contains
     write (*,*) "I reacheed past the cmtsolution file check."
 
     ! Just for now
-    allocate(sources(1))
+    allocate(sources(NSOURCES))
 
+    ! Open file again for reading sources
+    open(unit=IIN,file=trim(filename),status='old',action='read',iostat=ier)
+    if (ier /= 0) stop 'Error opening CMTSOLUTION file (read_cmt)'
+
+    ! read source number isource
+    do isource = 1,NSOURCES
+
+      ! gets header line
+      read(IIN,"(a256)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading header line in source ',isource
+        stop 'Error reading header line in station in CMTSOLUTION file'
+      endif
+
+      ! skips empty lines
+      do while( len_trim(string) == 0 )
+        read(IIN,"(a256)",iostat=ier) string
+        if (ier /= 0) then
+          write(IMAIN,*) 'Error reading header line in source ',isource
+          stop 'Error reading header blank lines in station in CMTSOLUTION file'
+        endif
+      enddo
+
+      ! debug
+      ! print *,'line ----',string,'----'
+
+      ! Reads the very front
+      read(string(1:4),*) sources(isource)%pde_desc
+      sources(isource)%pde_desc = trim(sources(isource)%pde_desc)
+      ! reads header line with event information (assumes fixed format)
+      ! old line: read(string,"(a4,i5,i3,i3,i3,i3,f6.2)") datasource,yr,mo,da,ho,mi,sec
+
+      ! reads header line with event information (free format)
+      ! gets rid of the first datasource qualifyer string which can have variable length, like:
+      ! "PDE 2014 9 3 .."
+      ! " PDEQ2014 9 3 .."
+      ! " MLI   1971   1   1 .."
+      ! note: globalcmt.org solutions might have missing spaces after datasource qualifier
+      !
+      ! reads in year,month,day,hour,minutes,seconds
+      istart = 1
+      do itype = 1,6
+        ! determines where first number starts
+        do i = istart,len_trim(string)
+          if (is_numeric(string(i:i))) then
+            istart = i
+            exit
+          endif
+        enddo
+        if ( istart >= len_trim(string) ) stop 'Error determining datasource length in header line in CMTSOLUTION file'
+        if ( istart <= 1 ) stop 'Error determining datasource length in header line in CMTSOLUTION file'
+
+        ! determines end and length of number
+        iend = istart
+        do i = istart,len_trim(string)
+          if (itype /= 6) then
+            ! integer values
+            if (.not. is_numeric(string(i:i))) then
+              iend = i
+              exit
+            endif
+          else
+            ! seconds will have a digit number
+            ! digit numbers, e.g. 39.60, can contain '.'
+            if (.not. is_digit(string(i:i))) then
+              iend = i
+              exit
+            endif
+          endif
+        enddo
+        iend = iend-1
+        if ( iend >= len_trim(string) ) stop 'Error determining number length in header line in CMTSOLUTION file'
+        if ( iend < istart ) stop 'Error determining number with negative length in header line in CMTSOLUTION file'
+
+!       ! debug
+!       !print *,itype,'line ----',string(istart:iend),'----'
+
+        ! reads in event time information
+        ! in case of multiple sources, time refers to the first entry only
+
+        select case (itype)
+        case (1)
+          ! year (as integer value)
+          read(string(istart:iend),*) yr
+        case (2)
+          ! month (as integer value)
+          read(string(istart:iend),*) mo
+        case (3)
+          ! day (as integer value)
+          read(string(istart:iend),*) da
+        case (4)
+          ! hour (as integer value)
+          read(string(istart:iend),*) ho
+        case (5)
+          ! minutes (as integer value)
+          read(string(istart:iend),*) mi
+        case (6)
+          ! seconds (as float value)
+          read(string(istart:iend),*) sec
+        end select
+
+        ! advances string
+        istart = iend + 1
+      enddo
+
+      ! checks time information
+      if (yr <= 0 .or. yr > 3000) then
+        write(IMAIN,*) 'Error reading year: ',yr,' in source ',isource,'is invalid'
+        stop 'Error reading year out of header line in CMTSOLUTION file'
+      endif
+      if (mo < 1 .or. mo > 12) then
+        write(IMAIN,*) 'Error reading month: ',mo,' in source ',isource,'is invalid'
+        stop 'Error reading month out of header line in CMTSOLUTION file'
+      endif
+      if (da < 1 .or. da > 31) then
+        write(IMAIN,*) 'Error reading day: ',da,' in source ',isource,'is invalid'
+        stop 'Error reading day of header line in CMTSOLUTION file'
+      endif
+      if (ho < 0 .or. ho > 24) then
+        write(IMAIN,*) 'Error reading hour: ',ho,' in source ',isource,'is invalid'
+        stop 'Error reading hour of header line in CMTSOLUTION file'
+      endif
+      if (mi < 0 .or. mi > 59) then
+        write(IMAIN,*) 'Error reading minute: ',mi,' in source ',isource,'is invalid'
+        stop 'Error reading minute of header line in CMTSOLUTION file'
+      endif
+      if (sec < 0.0 .or. sec >= 60.0) then
+        write(IMAIN,*) 'Error reading second: ',sec,' in source ',isource,'is invalid'
+        stop 'Error reading second of header line in CMTSOLUTION file'
+      endif
+
+      ! Populate the source
+      sources(isource)%year   = yr
+      sources(isource)%month  = mo
+      sources(isource)%day    = da
+      sources(isource)%hour   = ho
+      sources(isource)%minute = mi
+      sources(isource)%second = sec
+
+      ! gets julian day number
+      sources(isource)%jda = julian_day(yr,mo,da)
+
+      ! ignore line with event name
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading event name in source ',isource
+        stop 'Error reading event name in station in CMTSOLUTION file'
+      endif
+      read(string(12:len_trim(string)),*) sources(isource)%eventname
+
+      write(*,*) sources(isource)%eventname
+
+      ! read time shift
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading time shift in source ',isource
+        stop 'Error reading time shift in station in CMTSOLUTION file'
+      endif
+      read(string(12:len_trim(string)),*) sources(isource)%time_shift
+
+      ! read half duration
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading half duration in source ',isource
+        stop 'Error reading half duration in station in CMTSOLUTION file'
+      endif
+      read(string(15:len_trim(string)),*) sources(isource)%hdur
+
+      ! read latitude
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading latitude in source ',isource
+        stop 'Error reading latitude in station in CMTSOLUTION file'
+      endif
+      read(string(10:len_trim(string)),*) sources(isource)%latitude
+
+      ! read longitude
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading longitude in source ',isource
+        stop 'Error reading longitude in station in CMTSOLUTION file'
+      endif
+      read(string(11:len_trim(string)),*) sources(isource)%longitude
+
+      write(*,*) "longitude in source", sources(isource)%longitude
+
+
+      ! read depth
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading depth in source ',isource
+        stop 'Error reading depth in station in CMTSOLUTION file'
+      endif
+      read(string(7:len_trim(string)),*) sources(isource)%depth
+
+      ! seismic moment tensor
+      ! CMTSOLUTION: components given in dyne-cm
+      ! read Mrr
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading Mrr in source ',isource
+        stop 'Error reading Mrr in station in CMTSOLUTION file'
+      endif
+      read(string(5:len_trim(string)),*) sources(isource)%Mrr
+
+      ! read Mtt
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading Mtt in source ',isource
+        stop 'Error reading Mtt in station in CMTSOLUTION file'
+      endif
+      read(string(5:len_trim(string)),*) sources(isource)%Mtt
+
+      ! read Mpp
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading Mpp in source ',isource
+        stop 'Error reading Mpp in station in CMTSOLUTION file'
+      endif
+      read(string(5:len_trim(string)),*)  sources(isource)%Mpp
+
+      ! read Mrt
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading Mrt in source ',isource
+        stop 'Error reading Mrt in station in CMTSOLUTION file'
+      endif
+      read(string(5:len_trim(string)),*)  sources(isource)%Mrt
+
+      ! read Mrp
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading Mrp in source ',isource
+        stop 'Error reading Mrp in station in CMTSOLUTION file'
+      endif
+      read(string(5:len_trim(string)),*)  sources(isource)%Mrp
+
+      ! read Mtp
+      read(IIN,"(a)",iostat=ier) string
+      if (ier /= 0) then
+        write(IMAIN,*) 'Error reading Mtp in source ',isource
+        stop 'Error reading Mtp in station in CMTSOLUTION file'
+      endif
+      read(string(5:len_trim(string)),*)  sources(isource)%Mtp
+
+  enddo
+
+  close(IIN)
+
+! !
+! ! scale and non-dimensionalize the moment tensor
+! ! CMTSOLUTION file values are in dyne.cm
+! ! 1 dyne is 1 gram * 1 cm / (1 second)^2
+! ! 1 Newton is 1 kg * 1 m / (1 second)^2
+! ! thus 1 Newton = 100,000 dynes
+! ! therefore 1 dyne.cm = 1e-7 Newton.m
+! !
+!   scaleM = 1.d7 * RHOAV * (R_PLANET**5) * PI*GRAV*RHOAV
+!   moment_tensor(:,:) = moment_tensor(:,:) / scaleM
+    write(*,*) "at the very end"
   end function read_cmt
 
   !=====================================================================
@@ -820,7 +1082,7 @@ contains
 
     ! begin time
     ! btime = (seismo_offset)*DT - t0 + tshift_src
-    btime = 0.d0 - t_shift + tshift_src
+    btime = 0.d0 - t_shift !+ tshift_src
 
     B      = sngl(btime) ! [REQUIRED]
     E      = BYSAC       ! [REQUIRED]

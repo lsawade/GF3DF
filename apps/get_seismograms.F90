@@ -1,4 +1,7 @@
 program open_file
+!
+!  Auto source file test
+!
 
   use gf3d, only: read_GF, print_GF, t_GF, free_GF, throwerror, &
                   setup_point_search_arrays, t_source, locate_sources, &
@@ -9,13 +12,16 @@ program open_file
   use stf, only: get_stf, stf_convolution
   use fftpack, only: rk, fft, ifft, fftfreq
   use utils, only: nextpower2
+
+
   ! variable names
   character(len=65) :: hdf5_filename, source_filename ! input variable
-  integer :: ix, num_args
+  integer :: ix, num_args                             !  some declarations
   integer :: i, j, k, icomp
   integer(kind=8) :: iglob
   character(len=20), dimension(:), allocatable :: args
   type(t_source), dimension(1), target :: sources
+  type(t_source), dimension(:), allocatable :: sources_from_file
   double precision, dimension(:,:,:), allocatable :: seismograms
   double precision, dimension(:,:,:,:,:,:,:), allocatable :: displacement
   character(len=MAX_STRING_LEN), parameter :: OUTPUT_DIR = './OUTPUT/'
@@ -69,15 +75,13 @@ program open_file
   ! Read Green Function file
   GF = read_GF(hdf5_filename)
 
-  ! Read cmt solution
-  sources(:) = read_cmt(source_filename)
-
   ! Print header
   call print_GF(GF)
 
   call setup_point_search_arrays(GF)
 
-
+  ! Read cmt solution
+  sources = read_cmt(source_filename)
 
   ! ---------------------------------------------------------------------------
   ! Using this source
@@ -99,58 +103,13 @@ program open_file
   ! Read all the sources
   ! call read_source_locations(sources)
 
-  ! Define Source
-  sources(1)%force = .false.
-  sources(1)%latitude = -31.1300
-  sources(1)%longitude = -72.0900
-  sources(1)%depth = 17.3500
-  sources(1)%Mrr = dble( 1.950000E+28)
-  sources(1)%Mtt = dble(-4.360000E+26)
-  sources(1)%Mpp = dble(-1.910000E+28)
-  sources(1)%Mrt = dble( 7.420000E+27)
-  sources(1)%Mrp = dble(-2.480000E+28)
-  sources(1)%Mtp = dble( 9.420000E+26)
-  sources(1)%eventname = "C201509162254A"
-  sources(1)%time_shift = 50.0000
-  sources(1)%hdur = 33.4000
-  sources(1)%year = 2015
-  sources(1)%month = 9
-  sources(1)%day = 16
-  sources(1)%jda = julian_day(sources(1)%year, sources(1)%month, sources(1)%day)
-  sources(1)%hour = 22
-  sources(1)%minute = 54
-  sources(1)%second = 32.90
-
-  write(*,*) "GF%bool"
-  write(*,*) GF%ibool
+  write(*,*) "------------------------------------------------"
+  call print_source(sources(1), 1)
+  write(*,*) "------------------------------------------------"
 
   call locate_sources(GF, sources)
 
-
-
-  write(*,*) "Located source values"
-  write(*,*) "------------------------------------------------"
-  write(*,*) "Mxx    ", sources(1)%Mxx
-  write(*,*) "Myy    ", sources(1)%Myy
-  write(*,*) "Mzz    ", sources(1)%Mzz
-  write(*,*) "Mxy    ", sources(1)%Mxy
-  write(*,*) "Mxz    ", sources(1)%Mxz
-  write(*,*) "Myz    ", sources(1)%Myz
-  write(*,*) "x      ", sources(1)%x
-  write(*,*) "y      ", sources(1)%y
-  write(*,*) "z      ", sources(1)%z
-  write(*,*) "xix    ", sources(1)%xix
-  write(*,*) "xiy    ", sources(1)%xiy
-  write(*,*) "xiz    ", sources(1)%xiz
-  write(*,*) "etax   ", sources(1)%etax
-  write(*,*) "etay   ", sources(1)%etay
-  write(*,*) "etaz   ", sources(1)%etaz
-  write(*,*) "gammax ", sources(1)%gammax
-  write(*,*) "gammay ", sources(1)%gammay
-  write(*,*) "gammaz ", sources(1)%gammaz
-  write(*,*) "------------------------------------------------"
-
-  call print_source(sources(1), 1)
+  call print_source(sources(1), 2)
 
   allocate(t(GF%nsteps),stf(GF%nsteps), stf2(GF%nsteps))
   allocate(seismograms(size(GF%displacement,1), 3, GF%nsteps))
@@ -185,53 +144,35 @@ program open_file
 
 
 
-  if ((sources(1)%hdur / 1.628) ** 2 .le. GF%hdur**2) then
-
-      hdur_diff = 0.000001
-
-      write (*,*) &
-          "Requested half duration smaller than what was simulated.\n", &
-          "Half duration set to ", hdur_diff," s to simulate a Heaviside function."
-
-      hdur_conv = sqrt(GF%hdur**2 - (sources(1)%hdur / 1.628)**2)
-
-      write (*,*) "Try convolving your seismogram with a Gaussian with ", &
-                  hdur_conv, " standard deviation."
-  else
-    hdur_diff = sqrt((sources(1)%hdur / 1.628)**2 - GF%hdur**2)
-  endif
 
 
   t0 = 0.d0
   tc = 200.d0
   t(:) = t0 + ((/(I, I=1, GF%nsteps, 1)/)-1) * GF%dt
-  ! do i=1,GF%nsteps
-  !   t(i) = t0 + (i-1)*GF%dt
-  ! enddo
 
   call get_stf(t, tc, hdur_diff, int(GF%nsteps, kind=4), stf)
 
-
-  shift = -200.0
   allocate(convolution(size(GF%displacement,1), 3, GF%nsteps))
-  convolution(:,:,:) = stf_convolution(seismograms, stf2, GF%dt, shift)
+  convolution(:,:,:) = stf_convolution(seismograms, stf, GF%dt, tc)
 
 
   ! real :: start, finish
   ! call cpu_time(start)
   !       ! put code to test here
 
+
+  ! I haven't set the compilation flag for open mp yet...
+  !$OMP PARALLEL DO
   ! do iter=1,niter
 
   do k=1,size(GF%displacement,1)
-    ! write(*,*) trim(GF%networks(k)), ".", trim(GF%stations(k))
 
-
-    write(sisname,"(a,'.',a)")
-    write(sisname,"('/',a,'.',a,'.',a3,'.sem')") &
-      trim(GF%networks(k)), trim(GF%stations(k)), channels(icomp)
+    write(*,*) trim(GF%networks(k)), ".", trim(GF%stations(k))
 
     do icomp=1,NCHANNELS
+
+      write(sisname,"('/',a,'.',a,'.',a3,'.sem')") &
+      trim(GF%networks(k)), trim(GF%stations(k)), trim(channels(icomp))
 
       call write_output_SAC(&
         ! seismograms(k,icomp,:), &
@@ -267,9 +208,12 @@ program open_file
     enddo
   enddo
 
+  !enddo
+  !$OMP END PARALLEL DO
 
-  call exit()
-
+  ! call cpu_time(finish)
+  ! print '("Time = ",f6.3," seconds.")',finish-start
+  ! print '("AvgTime = ",f6.3," seconds.")',(finish-start)/niter
 
   call get_stf(t, tc, hdur_diff, int(GF%nsteps, kind=4), stf)
 
@@ -315,7 +259,7 @@ program open_file
   cstf = fft(cmplx(stf,kind=rk), NP2)
 
   write(*,*) 'Sizes', GF%nsteps, NP2
-
+  write(*,*) 'Nstat', size(GF%stations)
   stf = dble(abs(cstf))
 
   write(sisname,"(a,'.',a)")
