@@ -3,25 +3,25 @@ program open_file
 !  Auto source file test
 !
 
-  use gf3d, only: read_GF, print_GF, t_GF, free_GF, throwerror, &
-                  setup_point_search_arrays, t_source, locate_sources, &
+  use gf3d, only:
+
+                  read_GF, print_GF, t_GF, free_GF, throwerror, &
+                  locate_sources, &
                   scaleM, interpolateMT, write_output_SAC, &
                   NCHANNELS, orientation, channels, MAX_STRING_LEN, julian_day, &
                   PI, read_cmt, print_source
 
-  use stf, only: get_stf, stf_convolution
+  use stf, only: get_stf, stf_convolution, correct_hdur
   use fftpack, only: rk, fft, ifft, fftfreq
-  use utils, only: nextpower2
+  use utils, only: nextpower2, get_args
 
 
   ! variable names
   character(len=65) :: hdf5_filename, source_filename ! input variable
-  integer :: ix, num_args                             !  some declarations
+  character(len=20), dimension(:), allocatable :: args
   integer :: i, j, k, icomp
   integer(kind=8) :: iglob
-  character(len=20), dimension(:), allocatable :: args
   type(t_source), dimension(1), target :: sources
-  type(t_source), dimension(:), allocatable :: sources_from_file
   double precision, dimension(:,:,:), allocatable :: seismograms
   double precision, dimension(:,:,:,:,:,:,:), allocatable :: displacement
   character(len=MAX_STRING_LEN), parameter :: OUTPUT_DIR = './OUTPUT/'
@@ -30,47 +30,27 @@ program open_file
   logical :: OUTPUT_SEISMOS_SAC_ALPHANUM = .true.
   logical :: OUTPUT_SEISMOS_SAC_BINARY = .true.
 
-  double precision :: t0, tc, hdur, hdur_conv, hdur_diff
+  double precision :: t0, tc, hdur_diff. shift
   integer :: NP2
-  double precision, dimension(:), allocatable :: t, stf, stf2
+  double precision, dimension(:), allocatable :: t, stf
   complex(kind=rk), dimension(:), allocatable :: cstf
-  double precision :: shift
-  complex(kind=rk), dimension(:), allocatable :: pshift
-  double precision, dimension(:), allocatable :: freqs
-  complex(kind=rk), dimension(:), allocatable :: convo
-  complex(kind=rk), dimension(:), allocatable :: cseis
-  double precision, dimension(:), allocatable :: outseis
   double precision, dimension(:,:,:), allocatable :: convolution
-
-  ! for the solution in time domain
-  ! integer, parameter :: iratio = 32
-  ! integer, parameter :: nfreq = 524288
-  ! integer, parameter :: nt = iratio * nfreq
-
-  ! integer :: it
-
-  ! real :: wsave(4*nt+15)
-  ! complex :: c(nt)
-
 
 
   type(t_GF) :: GF
 
-  ! filename = '../single_element.h5' ! refer to line 5 of hdf5.js
-  num_args = command_argument_count()
-  if (num_args /= 2) call throwerror(5, "*** gf3d takes exactly 2 arguments which is an hdf5 file, and a source file")
 
-  ! I've omitted checking the return status of the allocation
-  allocate(args(num_args))
+  args = get_args()
+  if (size(args) /= 2) call throwerror(5, "  *** write-seismograms takes exactly 2 arguments which is an hdf5 file, and a source file and output dir ***  ")
 
-  ! Actually read each argument.
-  do ix = 1, num_args
-    call get_command_argument(ix,args(ix))
-  end do
 
   ! which gives the filename
   hdf5_filename = args(1)
   source_filename = args(2)
+  source_filename = args(2)
+
+  !
+  write_seismograms()
 
   ! Read Green Function file
   GF = read_GF(hdf5_filename)
@@ -78,30 +58,8 @@ program open_file
   ! Print header
   call print_GF(GF)
 
-  call setup_point_search_arrays(GF)
-
   ! Read cmt solution
   sources = read_cmt(source_filename)
-
-  ! ---------------------------------------------------------------------------
-  ! Using this source
-  ! PDEW2015  9 16 22 54 32.90 -31.5700  -71.6700  22.4 0.0 8.3 NEAR COAST OF CENTRAL CH
-  ! event name:     201509162254A
-  ! time shift:     49.9800
-  ! half duration:  33.4000
-  ! latitude:      -31.1300
-  ! longitude:     -72.0900
-  ! depth:          17.3500
-  ! Mrr:       1.950000e+28
-  ! Mtt:      -4.360000e+26
-  ! Mpp:      -1.910000e+28
-  ! Mrt:       7.420000e+27
-  ! Mrp:      -2.480000e+28
-  ! Mtp:       9.420000e+26
-  ! ---------------------------------------------------------------------------
-
-  ! Read all the sources
-  ! call read_source_locations(sources)
 
   write(*,*) "------------------------------------------------"
   call print_source(sources(1), 1)
@@ -144,7 +102,7 @@ program open_file
 
 
 
-
+  hdur_diff = correct_hdur(sources(1)%hdur, GF%hdur)
 
   t0 = 0.d0
   tc = 200.d0

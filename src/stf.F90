@@ -20,7 +20,6 @@ contains
   !  data. It uses an input time vector time-center and half-duration and
   !  populates an array with the output STF
   !
-    implicit none
     use error_functions, only: netlib_specfun_erf
 
     double precision, dimension(NT), intent(in) :: t        ! Time vector
@@ -45,7 +44,7 @@ contains
   !  time series to be convolved with an equal length STF. The convolved traces
   !  are shifted back in time to make the convolution independent of possible
   !  time shifts
-    implicit none
+
     use fftpack, only: rk, fft, ifft, fftfreq
     use utils, only: nextpower2
     use constants, only: PI
@@ -57,7 +56,7 @@ contains
     double precision, intent(in) :: tc                                 ! time shift
 
     ! Local
-    integer :: k, Nk, i, Ni, NP2
+    integer :: k, Nk, i, Ni, NP2, NT
     complex(kind=rk), dimension(:), allocatable :: cstf
     complex(kind=rk), dimension(:), allocatable :: pshift
     complex(kind=rk), dimension(:), allocatable :: convo
@@ -128,7 +127,6 @@ contains
   !  function output a half duration close to 0, and suggests a half duration
   !  for a Gaussian to convolve the data with after convolution with STF.
   !
-    implicit none
 
     ! In
     double precision, intent(in) :: hdur_cmt        ! Requested hdur from CMT
@@ -138,7 +136,7 @@ contains
     double precision :: hdur_conv                   ! suggested hdur if cmt hdur too short
 
     ! Out
-    double precision, intent(out) :: correct_hdur   ! OUTPUT half duration
+    double precision :: correct_hdur   ! OUTPUT half duration
 
 
     if ((hdur_cmt / 1.628) ** 2 .le. hdur_gf**2) then
@@ -147,9 +145,9 @@ contains
 
         write (*,*) &
             "Requested half duration smaller than what was simulated.\n", &
-            "Half duration set to ", hdur_diff," s to simulate a Heaviside function."
+            "Half duration set to ", correct_hdur," s to simulate a Heaviside function."
 
-        hdur_conv = sqrt(hdur_gf**2 - (sources(1)%hdur / 1.628)**2)
+        hdur_conv = sqrt(hdur_gf**2 - (hdur_cmt / 1.628)**2)
 
         write (*,*) "Try convolving your seismogram with a Gaussian with ", &
                     hdur_conv, " standard deviation."
@@ -159,6 +157,6 @@ contains
 
     endif
 
-
+  end function correct_hdur
 
 end module stf

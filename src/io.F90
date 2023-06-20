@@ -12,6 +12,7 @@ contains
     use hdf5
     use utils, only: throwerror
     use ctypes, only: t_GF
+    use setup_source_location, only: setup_point_search_arrays
     use hdf5_utils, only: read_from_hdf5, get_dset_rank, get_dset_dims
 
     implicit none
@@ -42,6 +43,9 @@ contains
 
     ! Loading arrays
     call load_arrays(file_id, GF)
+
+    ! Setup point search arrays
+    call setup_point_search_arrays(GF)
 
     ! ------ finalize routines -----------------------
     call h5fclose_f(file_id, errorflag)
@@ -1082,7 +1086,7 @@ contains
 
     ! begin time
     ! btime = (seismo_offset)*DT - t0 + tshift_src
-    btime = 0.d0 - t_shift !+ tshift_src
+    btime = 0.d0 - t_shift + tshift_src
 
     B      = sngl(btime) ! [REQUIRED]
     E      = BYSAC       ! [REQUIRED]

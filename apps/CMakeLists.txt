@@ -34,18 +34,25 @@ target_link_libraries(
     hdf5_fortran-shared
 )
 
-add_executable(gf3d-get-seismograms get_seismograms.F90)
+# add_executable(gf3d-get-seismograms get_seismograms.F90)
+# target_link_libraries(
+#     gf3d-get-seismograms
+#     gf3d
+#     utils
+#     ctypes
+#     stf
+#     fftpack
+#     setup_source_location
+#     hdf5_utils
+#     hdf5_fortran-shared
+# )
+
+add_executable(test-utils  test_utils.F90)
 target_link_libraries(
-    gf3d-get-seismograms
-    gf3d
+    test-utils
     utils
-    ctypes
-    stf
-    fftpack
-    setup_source_location
-    hdf5_utils
-    hdf5_fortran-shared
 )
+
 
 add_executable(test-rw-c test_rw.c)
 target_link_libraries(

@@ -28,5 +28,13 @@ module gf3d
     NCHANNELS, orientation, channels, MAX_STRING_LEN, PI
 
 
+contains
+
+  function write_seismograms(GF_file, source_file, OUTPUT_DIR)
+
+
+
+  end function
+
 
 end module gf3d

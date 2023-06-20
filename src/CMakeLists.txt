@@ -2,6 +2,9 @@
 add_library(binary_c_io binary_c_io.c ${HEADER_FILES})
 target_include_directories(binary_c_io PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+# C library to check file/dir status
+add_library(file_info file_info.c)
+
 # Error function library. Used to make Heaviside functions to convolve with
 # the stored traces.
 add_library(error_functions error_functions.F90)
@@ -108,6 +111,7 @@ target_link_libraries(
     constants
     gll_library
     lagrange_poly
+    setup_source_location
     hdf5_utils
     hdf5_fortran-shared
 )
