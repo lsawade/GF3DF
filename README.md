@@ -11,6 +11,15 @@ Right now, I'm just keeping the convention with module names so that
 this is very clean, but an ok way to get around the `*.mod` having unique names
 convention.
 
+If you want to build a shared library, please use the `-fPIC` flag
+```bash
+export CFLAGS="-fPIC"
+export FFLAGS="-fPIC"
+```
+
+Whether you use your own built parallel HDF5 or a cluster non-mpi HDF5, both
+should work fine! Just make sure that the compilers are the same so that there
+are no issues.
 
 Make sure the `HDF5_ROOT` variable is set.
 ```bash

@@ -56,7 +56,6 @@ bfof = read('OUTPUT/II.BFO.*.sac')
 
 pbfof = process_stream(bfof, cmt=cmt)
 plotseismogram(pbfopy, pbfof, cmt, nooffset=True, lw=0.25)
-plt.autoscale(axis='y')
 plt.savefig('testplot_nooffset.pdf', dpi=300)
 plotseismogram(pbfopy, pbfof, cmt, nooffset=False, lw=0.25)
 plt.savefig('testplot.pdf', dpi=300)

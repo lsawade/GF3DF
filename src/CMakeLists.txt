@@ -66,7 +66,7 @@ target_link_libraries(
     stf
     error_functions
     # Fortran HDF5 library
-    hdf5_fortran-shared
+    hdf5_fortran
 )
 
 # # Create HDF5 utilities
