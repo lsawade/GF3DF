@@ -1,7 +1,6 @@
 program print_cmt
 
-  use sources, only: t_source, read_cmt, print_source
-  use utils, only: get_args, throwerror
+  use gf3d, only: t_source, read_cmt, print_source, get_args, throwerror
 
   ! Types
   integer :: i

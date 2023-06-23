@@ -136,8 +136,6 @@ contains
       stop 'need at least one source in CMTSOLUTION or FORCESOLUTION file'
     endif
 
-    write (*,*) "I reacheed past the cmtsolution file check."
-
     ! Just for now
     allocate(sources(NSOURCES))
 
@@ -291,8 +289,6 @@ contains
       endif
       read(string(12:len_trim(string)),*) sources(isource)%eventname
 
-      write(*,*) sources(isource)%eventname
-
       ! read time shift
       read(IIN,"(a)",iostat=ier) string
       if (ier /= 0) then
@@ -324,9 +320,6 @@ contains
         stop 'Error reading longitude in station in CMTSOLUTION file'
       endif
       read(string(11:len_trim(string)),*) sources(isource)%longitude
-
-      write(*,*) "longitude in source", sources(isource)%longitude
-
 
       ! read depth
       read(IIN,"(a)",iostat=ier) string

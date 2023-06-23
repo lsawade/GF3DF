@@ -1,13 +1,9 @@
-module gf_io
-
-  private
-  public :: read_GF, print_GF, load_header, load_arrays, free_GF
-
+submodule (gf) io
+  implicit none
 contains
 
-  type(t_GF) function read_GF(filename) result(GF)
+  type(t_GF) module function read_GF(filename) result(GF)
 
-    use gf_types, only: t_GF
     use hdf5
     use utils, only: throwerror
     use hdf5_utils, only: read_from_hdf5, get_dset_rank, get_dset_dims
@@ -51,10 +47,9 @@ contains
 
   end function read_GF
 
-  subroutine print_GF(GF)
+  module subroutine print_GF(GF)
 
-    use gf_types, only: t_GF
-    type(t_GF) :: GF
+    type(t_GF), intent(in) :: GF
 
     ! Print format parameters
     CHARACTER(LEN=30) :: integerformat = "(A25 I20)"
@@ -106,9 +101,8 @@ contains
   end subroutine print_GF
 
 
-  subroutine load_header(file_id, GF)
+  module subroutine load_header(file_id, GF)
 
-    use gf_types, only: t_GF
     use utils, only: throwerror
     use hdf5
     use hdf5_utils, only: read_from_hdf5, get_dset_dims
@@ -263,12 +257,11 @@ contains
   end subroutine load_header
 
 
-  subroutine load_arrays(file_id, GF)
+  module subroutine load_arrays(file_id, GF)
 
     use constants, only: GAUSSALPHA, GAUSSBETA
     use gll_library, only: zwgljd
     use lagrange_poly, only: lagrange_any, lagrange_deriv_GLL
-    use gf_types, only: t_GF
     use utils, only: throwerror
     use hdf5
     use hdf5_utils, only: read_from_hdf5, get_dset_dims
@@ -441,9 +434,7 @@ contains
   end subroutine load_arrays
 
 
-  subroutine free_GF(GF)
-
-    use gf_types, only: t_GF
+  module subroutine free_GF(GF)
 
     ! GF structure to populate
     type(t_GF), intent(inout) :: GF
@@ -512,5 +503,4 @@ contains
 
   !=====================================================================
 
-
-end module gf_io
+end submodule io
