@@ -12,6 +12,10 @@ project (GF3D
 
 enable_language (C Fortran)
 
+if(POLICY CMP0079 )
+  cmake_policy(SET CMP0079 NEW)
+endif()
+
 # set (FFLAGS "-Og -g -Wall -Wextra -pedantic -std=f95 -fimplicit=none -fcheck-all -fbacktrace")
 
 find_package(MPI REQUIRED)

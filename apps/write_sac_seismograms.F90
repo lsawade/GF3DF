@@ -1,10 +1,9 @@
-program w
+program write_sac_seismograms
 !
 !  Auto source file test
 !
 
-  use gf3d, only: write_seismograms
-  use utils, only: get_args, throwerror
+  use gf3d, only: write_seismograms, get_args, throwerror
 
   ! variable names
   character(len=65) :: hdf5_filename, source_filename, outputdir! input variable
@@ -210,4 +209,4 @@ program w
   ! print '("AvgTime = ",f6.3," seconds.")',(finish-start)/niter
 
 
- end program get_seismograms
+ end program write_sac_seismograms

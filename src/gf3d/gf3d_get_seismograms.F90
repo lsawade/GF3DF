@@ -1,122 +1,22 @@
-
-module gf3d
-
-  use ctypes, only: t_GF, t_source
-  use io, only: read_GF, free_GF, read_cmt, print_GF, print_source, write_output_SAC
-  use utils, only: throwerror, scaleM
-  use setup_source_location, only: setup_point_search_arrays
-  use source_location, only: locate_sources
-  use interpolation, only: interpolateMT
-  use hdf5
-
+module gf3d_get_seismograms
+  implicit none
   private
-  public :: &
-    read_GF, read_cmt, &
-    print_GF, print_source, &
-    t_GF, &
-    t_source, &
-    free_GF, &
-    throwerror, &
-    setup_point_search_arrays, &
-    locate_sources, &
-    scaleM, &
-    julian_day, &
-    interpolateMT, &
-    write_output_SAC, &
-    write_seismograms
-
-
+  public :: get_seismograms
 contains
-
-  subroutine write_seismograms(&
-    GF_filename, source_filename, output_dir, &
-    OUTPUT_SEISMOS_SAC_ALPHANUM, &
-    OUTPUT_SEISMOS_SAC_BINARY)
-
-    use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN
-    use io, only: read_cmt, read_GF
-    use ctypes, only: t_GF, t_source
-
-    ! In
-    character(len=*), intent(in) :: GF_filename, source_filename, output_dir
-    logical, intent(in) :: OUTPUT_SEISMOS_SAC_ALPHANUM
-    logical, intent(in) :: OUTPUT_SEISMOS_SAC_BINARY
-
-    ! Local
-    type(t_GF) :: GF
-    type(t_source), dimension(:), allocatable :: sources
-    character(len=MAX_STRING_LEN) :: sisname
-    character(len=MAX_STRING_LEN) :: model = "GLAD-M25"
-    integer :: icomp, k
-    double precision, dimension(:,:,:), allocatable :: seismograms
-
-
-    ! Read Green Function file
-    GF = read_GF(GF_filename)
-
-    ! Read cmt solution
-    sources = read_cmt(source_filename)
-
-    ! Extract seismograms
-    seismograms = get_seismograms(GF, sources)
-
-    do k=1,size(GF%displacement,1)
-
-      write(*,*) trim(GF%networks(k)), ".", trim(GF%stations(k))
-
-      do icomp=1,NCHANNELS
-
-        write(sisname,"('/',a,'.',a,'.',a3,'.sem')") &
-        trim(GF%networks(k)), trim(GF%stations(k)), trim(channels(icomp))
-
-        call write_output_SAC(&
-          seismograms(k,icomp,:), &
-          orientation(icomp), &
-          sisname, &
-          channels(icomp), &
-          sources(1)%year, &
-          sources(1)%jda, &
-          sources(1)%hour, &
-          sources(1)%minute, &
-          sources(1)%second, &
-          sources(1)%time_shift, &
-          dble(GF%tc), &
-          sources(1)%eventname, &
-          sources(1)%latitude, &
-          sources(1)%longitude, &
-          sources(1)%depth, &
-          sources(1)%hdur, &
-          GF%stations(k), &
-          GF%networks(k), &
-          GF%latitudes(k), &
-          GF%longitudes(k), &
-          dble(0.0), &
-          GF%burials(k), &
-          GF%dt, &
-          dble(0.0), &
-          GF%nsteps, &
-          OUTPUT_SEISMOS_SAC_ALPHANUM, &
-          OUTPUT_SEISMOS_SAC_BINARY, &
-          model, &
-          output_dir)
-      enddo
-    enddo
-
-  end subroutine write_seismograms
-
-
   function get_seismograms(GF, sources) result(superseismograms)
 
-    use ctypes, only: t_GF, t_source
+    use gf, only: t_GF
+    use sources, only: t_source
     use stf, only: get_stf, stf_convolution, correct_hdur
     use interpolation, only: interpolateMT
+    use source_location, only: locate_sources
 
     ! In
     type(t_GF), intent(in) :: GF
     type(t_source), dimension(:) :: sources
 
     ! Local
-    integer :: isource
+    integer :: isource, i, j, k, iglob
     double precision :: t0, tc, hdur_diff
     double precision, dimension(:), allocatable :: t, stf
     double precision, dimension(:,:,:), allocatable :: seismograms
@@ -139,7 +39,7 @@ contains
     ! Setup basic parameter for STF
     t0 = 0.d0
     tc = 200.d0
-    t(:) = t0 + ((/(I, I=1, GF%nsteps, 1)/)-1) * GF%dt
+    t(:) = t0 + ((/(i, i=1, GF%nsteps, 1)/)-1) * GF%dt
 
     ! Initialize
     superseismograms(:,:,:) = 0.d0
@@ -194,4 +94,4 @@ contains
   end function get_seismograms
 
 
-end module gf3d
+end module gf3d_get_seismograms

@@ -1,43 +1,12 @@
-!=====================================================================
-!
-!                       S p e c f e m 3 D  G l o b e
-!                       ----------------------------
-!
-!     Main historical authors: Dimitri Komatitsch and Jeroen Tromp
-!                        Princeton University, USA
-!                and CNRS / University of Marseille, France
-!                 (there are currently many more authors!)
-! (c) Princeton University and CNRS / University of Marseille, April 2014
-!
-! This program is free software; you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation; either version 3 of the License, or
-! (at your option) any later version.
-!
-! This program is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more details.
-!
-! You should have received a copy of the GNU General Public License along
-! with this program; if not, write to the Free Software Foundation, Inc.,
-! 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-!
-!=====================================================================
-
-module get_cmt
+submodule (sources) utils
 
   implicit none
 
-  private
-  public :: &
-    get_cmt_scalar_moment, &
-    get_cmt_moment_magnitude, &
-    get_cmt_moment_magnitude_from_M0
-
 contains
 
-  double precision function get_cmt_scalar_moment(Mxx,Myy,Mzz,Mxy,Mxz,Myz)
+  !=====================================================================
+
+  double precision module function get_cmt_scalar_moment(Mxx,Myy,Mzz,Mxy,Mxz,Myz)
 
   ! calculates scalar moment (M0)
 
@@ -84,13 +53,13 @@ contains
   ! return value (in dyne-cm)
   get_cmt_scalar_moment = scalar_moment * scaleM
 
-  end function
+  end function get_cmt_scalar_moment
 
 !
 !-------------------------------------------------------------------------------------------------
 !
 
-  double precision function get_cmt_moment_magnitude(Mxx,Myy,Mzz,Mxy,Mxz,Myz)
+  double precision module function get_cmt_moment_magnitude(Mxx,Myy,Mzz,Mxy,Mxz,Myz)
 
   ! calculates moment magnitude (Mw)
 
@@ -110,14 +79,14 @@ contains
   ! return value
   get_cmt_moment_magnitude = Mw
 
-  end function
+  end function get_cmt_moment_magnitude
 
 
 !
 !-------------------------------------------------------------------------------------------------
 !
 
-  double precision function get_cmt_moment_magnitude_from_M0(M0)
+  double precision module function get_cmt_moment_magnitude_from_M0(M0)
 
   ! calculates moment magnitude (Mw) from seismic moment M0
 
@@ -161,7 +130,8 @@ contains
   ! return value
   get_cmt_moment_magnitude_from_M0 = Mw
 
-  end function
+  end function get_cmt_moment_magnitude_from_M0
 
 
-end module get_cmt
+
+end submodule utils

@@ -3,6 +3,15 @@
 Only really tested with `gfortran`. There maybe portability issues with `INQUIRE`
 routine.
 
+Organization of the code could be better. I'm not quite sure whether the going
+down the `submodule` route is the right thing. I have to write an extra
+interface for every function in the main module. Either way, that can wait.
+Right now, I'm just keeping the convention with module names so that
+`src/<dir>/<dir>.F90` has submodules `src/<dir>/<dir>_<sub>.F90`. I don't think
+this is very clean, but an ok way to get around the `*.mod` having unique names
+convention.
+
+
 Make sure the `HDF5_ROOT` variable is set.
 ```bash
 export HDF5_ROOT=/path/to/hdf5

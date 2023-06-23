@@ -42,14 +42,14 @@ target_link_libraries(
     constants
 )
 
-add_library(point_location point_location.F90)
+# add_library(point_location point_location.F90)
 
-target_link_libraries(
-    point_location
-    ctypes
-    constants
-    jacobian
-)
+# target_link_libraries(
+#     point_location
+#     ctypes
+#     constants
+#     jacobian
+# )
 
 add_library(gll_library gll_library.F90)
 
