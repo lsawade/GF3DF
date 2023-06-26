@@ -8,4 +8,9 @@ add_library(error_functions ${CMAKE_CURRENT_LIST_DIR}/error_functions.F90)
 target_link_libraries(
     stf
     fftpack
+    error_functions
 )
+
+# target_link_libraries(
+#     hdf5_utils
+#     hdf5_fortran)

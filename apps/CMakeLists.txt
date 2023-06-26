@@ -13,6 +13,11 @@ target_link_libraries(
     gf3d
 )
 
+add_executable(gf3d-write-stf write_source_time_functions.F90)
+target_link_libraries(
+    gf3d-write-stf
+    gf3d
+)
 
 # add_executable(readgf hdf5_read.F90)
 

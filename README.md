@@ -1,8 +1,5 @@
 # Fortran bindings to read GF3D produced Subset files
 
-Only really tested with `gfortran`. There maybe portability issues with `INQUIRE`
-routine.
-
 Organization of the code could be better. I'm not quite sure whether the going
 down the `submodule` route is the right thing. I have to write an extra
 interface for every function in the main module. Either way, that can wait.
@@ -62,3 +59,24 @@ Just building and running
 cmake --build build && ./bin/gf3d single_element.h5
 ```
 
+## Known Issues
+
+- **CMake does not find HDF5 correctly**. On my Mac, I have
+  had the issue that `find_package` in `CMake` failed or messed up the
+  `HDF5_INCLUDE_DIRS` path. Then it is really the easiest to some variables via
+  command line. First the normal paths
+  ```bash
+  export HDF5_ROOT=<path/to/hdf5>
+  export HDF5_LIBRARIES="${HDF5_ROOT}/lib"
+  export HDF5_INCLUDE_DIRS="${HDF5_ROOT}/include"
+  export PATH="${HDF5_ROOT}/bin:${PATH}"
+  ```
+  and the an easy way to collect all the flags is to simply use the HDF5 fortran
+  wrapper as a reference:
+  ```bash
+  export FFLAGS=${FFLAGS} $(echo "${FFLAGS}" $(h5fc -show | cut -w -f '2-60'))
+  ```
+  Another way would be to just set `export FC=h5fc`.
+
+- Only really tested with `gfortran`. There maybe portability issues with `INQUIRE`
+routine.

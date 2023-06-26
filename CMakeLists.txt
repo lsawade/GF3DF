@@ -36,8 +36,29 @@ set (CMAKE_BINARY_DIR ${PROJECT_BINARY_DIR}/bin)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # For this make sure that the environment variable HDF5_ROOT is set!
-find_package(HDF5 REQUIRED)
-find_package(HDF5 COMPONENTS C Fortran HL)
+# find_package(HDF5 REQUIRED)
+# find_package(HDF5 COMPONENTS C Fortran HL)
+
+# FetchContent_Declare(
+#         hdf5
+#         GIT_REPOSITORY https://github.com/HDFGroup/hdf5
+#         GIT_TAG        "hdf5-1_12_0"
+# )
+# FetchContent_MakeAvailable(hdf5)
+
+# FetchContent_GetProperties(hdf5)
+# message(STATUS "hdf5_POPULATED=${hdf5_POPULATED}")
+# if(NOT hdf5_POPULATED)
+# 	FetchContent_Populate(hdf5)
+# 	message(STATUS "HDF5_SOURCE_DIR=${HDF5_SOURCE_DIR}")
+# 	message(STATUS "HDF5_BINARY_DIR=${HDF5_BINARY_DIR}")
+# 	add_subdirectory(${hdf5_SOURCE_DIR} ${hdf5_BINARY_DIR})
+
+
+# 	include_directories("${HDF5_SOURCE_DIR}/c++/src")
+# 	SET(HDF5_LIBRARIES "${hdf5_BINARY_DIR}/bin/${CMAKE_STATIC_LIBRARY_PREFIX}hdf5_debug${CMAKE_SHARED_LIBRARY_SUFFIX}")
+# 	message(STATUS "HDF5_LIBRARIES=${HDF5_LIBRARIES}")
+# endif()
 
 # Set location of C header files
 set(HEADER_FILES ${PROJECT_SOURCE_DIR}/include/config.h)
