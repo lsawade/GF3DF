@@ -2,6 +2,7 @@
 add_executable(gf3d-print-cmt print_cmt.F90)
 target_link_libraries(
     gf3d-print-cmt
+    gf3d
     sources
     utils
     calendar
@@ -16,6 +17,13 @@ target_link_libraries(
 add_executable(gf3d-write-stf write_source_time_functions.F90)
 target_link_libraries(
     gf3d-write-stf
+    gf3d
+)
+
+
+add_executable(test-interp test_interpolation.F90)
+target_link_libraries(
+    test-interp
     gf3d
 )
 

@@ -6,6 +6,7 @@ module gf3d
   use utils, only: get_args, throwerror, nextpower2
   use stf, only: get_stf
   use sac, only: write_output_SAC
+  use interpolation, only: spline1d, interp1d
   use fftpack
 
   ! High level functions
@@ -21,6 +22,13 @@ module gf3d
     get_args, throwerror, nextpower2, &
     get_stf, &
     write_output_SAC, &
+    interp1d, spline1d,  &
+    printhello, &
     fftpack
+
+  interface printhello
+    subroutine printhello
+    end subroutine
+  end interface printhello
 
 end module gf3d

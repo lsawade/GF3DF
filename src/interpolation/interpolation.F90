@@ -1,10 +1,109 @@
 module interpolation
 
   private
-  public :: interpolateMT
+  public :: interpolateMT, spline1d, interp1d
 
 
 contains
+
+  subroutine spline1d(x,y,xq,yq)
+    use splines, only: spline
+    implicit none
+
+    ! Arguments
+    double precision, dimension(:), intent(in) :: x, y
+    double precision, dimension(:), intent(in) :: xq
+    double precision, dimension(:), intent(out) :: yq
+
+    ! Local values
+    integer :: ix, Nx
+    type(spline) :: sp
+
+    ! Get size of the array
+    Nx = size(xq)
+
+    ! Create spline coefficients
+    sp = spline(x,y)
+
+    ! Check whether min/max of xq is within x
+    if (.false. .eqv. (((minval(x) .le. minval(xq)) .and. (minval(xq) .le. maxval(x))) &
+      .and. ((minval(x) .le. maxval(xq)) .and. (maxval(xq) .le. maxval(x))))) then
+      stop "Error in spline interpolation. Interpolation range not in data range."
+    endif
+
+    ! Interpolate Values.
+    do ix=1,Nx
+      yq(ix) = sp%value(xq(ix))
+    enddo
+
+  end subroutine spline1d
+
+
+  subroutine interp1d( xData, yData, xVal, yVal )
+  !
+  ! Linear 1D interpolation.
+  !
+  ! Inputs: xData = a vector of the x-values of the data to be interpolated
+  !         yData = a vector of the y-values of the data to be interpolated
+  !         xVal  = a vector of the x-values where interpolation should be performed
+  ! Output: yVal  = a vector of the resulting interpolated values
+  !
+  ! Disclaimers: Only works for monotonically-increasing interpolation values
+  !
+  !
+
+    implicit none
+    ! Args
+    double precision, intent(in)  :: xData(:)                 ! Input x-data
+    double precision, intent(in)  :: yData(:)                 ! Input y-data
+    double precision, intent(in)  :: xVal(:)                  ! Vector with uniformly spaced query values
+    double precision, intent(out) :: yVal(:)                  ! Output queried values
+
+    ! Locals
+    integer :: inputIndex, dataIndex
+    double precision :: minXdata, maxXdata,  minXVal, maxXVal, xRange, weight
+
+    ! Check array sizes
+    if (.not. (size(xData) == size(yData))) stop "x and y data have to have the same size."
+    if (.not. (size(xVal) == size(yVal)))   stop "x and y query points have to have the same size."
+
+    ! Check if monotonically increasing
+    if (minval(xData(2:size(xData)) - xData(1:size(xData)-1)) .le. 0.d0) then
+      stop "Data not monotonically increasing."
+    endif
+
+    ! Check if monotonically increasing
+    if (minval(xVal(2:size(xVal)) - xVal(1:size(xVal)-1)) .le. 0.d0) then
+      stop "x query values not monotonically increasing."
+    endif
+
+    ! Check range
+    minXData = xData(1)
+    maxXData = xData(size(xData))
+    minXVal = xVal(1)
+    maxXVal = xVal(size(xVal))
+
+    ! Check whether min/max of xq is within x
+    if (.false. .eqv. (((minXData .le. minXVal) .and. (minXVal .le. maxXData)) &
+      .and. ((minXData .le. maxXVal) .and. (maxXVal .le. maxXData)))) then
+      stop "Error in spline interpolation. Interpolation range not in data range."
+    endif
+
+
+    do inputIndex = 1, size(xVal)
+      ! possible checks for out of range xVal could go here
+
+      ! this will work if x is uniformly spaced, otherwise increment
+      ! dataIndex until xData(dataIndex+1)>xVal(inputIndex)
+      dataIndex = 1
+      do while (xData(dataIndex+1) < xVal(inputIndex))
+        dataIndex = dataIndex + 1
+      enddo
+
+      weight = (xVal(inputIndex) - xData(dataIndex))/(xData(dataIndex+1)-xData(dataIndex))
+      yVal(inputIndex) = (1.0-weight)*yData(dataIndex) + weight*yData(dataIndex+1)
+    enddo
+  end subroutine interp1d
 
   subroutine interpolateMT(&
     displacement, NSTAT, NT, NGLLX, NGLLY, NGLLZ, xigll, yigll, zigll, &

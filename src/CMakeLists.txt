@@ -39,11 +39,12 @@ add_subdirectory(gf3d)
 
 target_link_libraries(
     gf3d
+    utils
+    sources
     gf
     fftpack
     interpolation
     sac
-    sources
     # location directory
     setup_source_location
     kdtree_search
@@ -59,7 +60,6 @@ target_link_libraries(
     spline_routines
     topo
     # Utils directory
-    utils
     calendar
     hdf5_utils
     heap_sort
