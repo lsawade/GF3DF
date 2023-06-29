@@ -5,7 +5,7 @@ program TestInterpolation
 !
 !
 
-use gf3d, only: spline1d, interp1d, throwerror, get_args, printhello
+use gf3d, only: spline1d, interp1d, throwerror, get_args
 
 implicit none
 
@@ -20,8 +20,6 @@ character(len=20), dimension(:), allocatable :: args
 
 ! Get command line argument
 args = get_args()
-
-call printhello()
 
 ! Evaluate Args
 if ((size(args) .ne. 2)) then

@@ -23,7 +23,6 @@ module gf3d
     get_stf, &
     write_output_SAC, &
     interp1d, spline1d,  &
-    printhello, &
     fftpack
 
 end module gf3d

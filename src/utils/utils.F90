@@ -88,7 +88,7 @@ contains
   function get_args() result(args)
 
     integer :: ix, num_args                             !  some declarations
-    character(len=20), dimension(:), allocatable :: args
+    character(len=256), dimension(:), allocatable :: args
 
     ! filename = '../single_element.h5' ! refer to line 5 of hdf5.js
     num_args = command_argument_count()

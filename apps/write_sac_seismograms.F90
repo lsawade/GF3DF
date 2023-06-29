@@ -6,8 +6,8 @@ program write_sac_seismograms
   use gf3d, only: write_seismograms, get_args, throwerror
 
   ! variable names
-  character(len=65) :: hdf5_filename, source_filename, outputdir! input variable
-  character(len=20), dimension(:), allocatable :: args
+  character(len=256) :: hdf5_filename, source_filename, outputdir! input variable
+  character(len=256), dimension(:), allocatable :: args
 
   logical :: OUTPUT_SEISMOS_SAC_ALPHANUM = .false.
   logical :: OUTPUT_SEISMOS_SAC_BINARY = .false.
