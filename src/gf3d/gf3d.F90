@@ -26,9 +26,4 @@ module gf3d
     printhello, &
     fftpack
 
-  interface printhello
-    subroutine printhello
-    end subroutine
-  end interface printhello
-
 end module gf3d

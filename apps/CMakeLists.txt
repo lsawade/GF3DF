@@ -27,6 +27,9 @@ target_link_libraries(
     gf3d
 )
 
+add_executable(make-ellipticity make_ellipticity.F90)
+
+
 # add_executable(readgf hdf5_read.F90)
 
 # #the name of the external library located in /home/path/lib/libdir/lib is    libexternlib.so
