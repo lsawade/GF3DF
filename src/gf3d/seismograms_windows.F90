@@ -157,7 +157,7 @@ contains
 
       if (DEBUG) write(IMAIN,*) 'Max disp: ', maxval(displacement)
       if (DEBUG) write(IMAIN,*) 'Max seis: ', maxval(seismograms)
-      if (DEBUG) write(IMAIN,*) 'Max stf: ', maxval(stf)
+      if (DEBUG) write(IMAIN,*) 'Max stf:  ', maxval(stf)
       if (DEBUG) write(IMAIN,*) 'Max conv: ', maxval(convolution)
       if (DEBUG) write(IMAIN,*) 'Max supe: ', maxval(superseismograms)
     enddo
@@ -241,7 +241,7 @@ contains
         sources(1)%minute, &
         sources(1)%second, &
         sources(1)%time_shift, &
-        dble(GF%tc) + t0, &
+        - t0 - dt*it0 + sources(1)%time_shift, &
         sources(1)%eventname, &
         sources(1)%latitude, &
         sources(1)%longitude, &

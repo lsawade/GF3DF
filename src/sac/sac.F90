@@ -181,7 +181,7 @@ contains
 
     ! begin time
     ! btime = (seismo_offset)*DT - t0 + tshift_src
-    btime = 0.d0 - t_shift
+    btime = 0.d0 - t_shift + tshift_src
 
     B      = sngl(btime) ! [REQUIRED]
     E      = BYSAC       ! [REQUIRED]
@@ -283,7 +283,7 @@ contains
 
     ! Adjust event time and date after t_shift is added
     if (NZSEC >= 60) then
-    time_sec = jda*24*3600 + ho*3600 + mi*60 + int(sec+t_shift)
+    time_sec = jda*24*3600 + ho*3600 + mi*60 + int(sec)
     NZJDAY   = int(time_sec/(24*3600))
     NZHOUR   = int(mod(time_sec,24*3600)/3600)
     NZMIN    = int(mod(time_sec,3600)/60)

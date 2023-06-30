@@ -151,7 +151,7 @@ contains
           sources(1)%minute, &
           sources(1)%second, &
           sources(1)%time_shift, & ! It's important to note that this has 0 effect!
-          dble(GF%tc) + sources(1)%time_shift, & ! Here we add the source time shift!
+          dble(GF%tc), & ! + sources(1)%time_shift , & ! Here we add the source time shift!
           sources(1)%eventname, &
           sources(1)%latitude, &
           sources(1)%longitude, &
