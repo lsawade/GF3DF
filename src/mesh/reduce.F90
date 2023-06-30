@@ -24,7 +24,6 @@
 ! 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 !
 !=====================================================================
-
   subroutine reduce(theta,phi)
 
 ! bring theta between 0 and PI, and phi between 0 and 2*PI

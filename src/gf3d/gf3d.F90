@@ -27,6 +27,17 @@ module gf3d
     init_log, finalize_log, &
     fftpack
 
+  ! interface interpolate_source
+  !   module subroutine interpolate_source(GF, source, seismograms)
+  !     use gf, only: t_GF
+  !     use sources, only: t_source
+  !     use interpolation, only: interpolateMT
+  !     type(t_GF), intent(in) :: GF
+  !     type(t_source), intent(in) :: source
+  !     double precision, dimension(:,:,:) :: seismograms
+  !   end subroutine interpolate_source
+  ! end interface interpolate_source
+
   interface get_seismograms
     module subroutine get_seismograms(GF, sources, superseismograms)
       use gf, only: t_GF

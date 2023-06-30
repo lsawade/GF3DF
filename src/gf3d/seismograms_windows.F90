@@ -241,7 +241,7 @@ contains
         sources(1)%minute, &
         sources(1)%second, &
         sources(1)%time_shift, &
-        - t0 - dt*it0 + sources(1)%time_shift, &
+        - t0 - dt*it0, &
         sources(1)%eventname, &
         sources(1)%latitude, &
         sources(1)%longitude, &

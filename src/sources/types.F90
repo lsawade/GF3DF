@@ -98,6 +98,8 @@ submodule (sources) types
     double precision :: comp_dir_vect_source_N = 0.d0
     double precision :: comp_dir_vect_source_Z_UP = 0.d0
 
+  procedure :: tensor => tensor
+  procedure :: full => fulltensor
   ! contains
   !     private
   !     procedure, pass :: write => write_source
@@ -106,6 +108,37 @@ submodule (sources) types
   !     ! generic, public :: read(formatted)  => read
 
   end type
+
+contains
+
+  function tensor(source) result(mt)
+    class(t_source), intent(in) :: source
+    double precision, dimension(6) :: mt
+
+    if (source%force) call throwerror(-1, "Cant get tensor from force source")
+    mt(1) = source%Mrr
+    mt(2) = source%Mtt
+    mt(3) = source%Mpp
+    mt(4) = source%Mrt
+    mt(5) = source%Mrp
+    mt(6) = source%Mtp
+  end function tensor
+
+  function fulltensor(source) result(mt)
+    class(t_source), intent(in) :: source
+    double precision, dimension(3,3) :: mt
+    if (source%force) call throwerror(-1, "Cant get tensor from force source")
+
+    mt(1,1) = source%Mrr
+    mt(2,2) = source%Mtt
+    mt(3,3) = source%Mpp
+    mt(1,2) = source%Mrt
+    mt(2,1) = source%Mrt
+    mt(1,3) = source%Mrp
+    mt(3,1) = source%Mrp
+    mt(2,3) = source%Mtp
+    mt(3,2) = source%Mtp
+  end function fulltensor
 
 
 end submodule types

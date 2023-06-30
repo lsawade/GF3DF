@@ -32,9 +32,62 @@
 module source_location
 
   private
-  public :: locate_sources
+  public :: locate_sources, rotate_mt
 
 contains
+
+  subroutine rotate_mt(&
+    lat, lon, &
+    Mrr, Mtt, Mpp, Mrt, Mrp, Mtp, &
+    Mxx, Myy, Mzz, Mxy, Mxz, Myz)
+
+    use rthetaphi_xyz, only: lat_2_geocentric_colat_dble, xyz_2_rthetaphi_dble, &
+                             geocentric_2_geographic_dble
+
+    double precision, intent(inout) :: lat
+    double precision, intent(inout) :: lon
+    double precision, intent(in) :: Mrr, Mtt, Mpp, Mrt, Mrp, Mtp
+    double precision, intent(out) :: Mxx, Myy, Mzz, Mxy, Mxz, Myz
+
+    ! Local
+    double precision :: theta, phi
+    double precision :: sint, cost, sinp, cosp
+
+    ! limits longitude to [0.0,360.0]
+    if (lon < 0.d0 ) lon = lon + 360.d0
+    if (lon > 360.d0 ) lon = lon - 360.d0
+
+    ! convert geographic latitude lat (degrees) to geocentric colatitude theta (radians)
+    call lat_2_geocentric_colat_dble(lat,theta)
+
+    phi = lon*DEGREES_TO_RADIANS
+
+    call reduce(theta,phi)
+
+    sint = sin(theta)
+    cost = cos(theta)
+    sinp = sin(phi)
+    cosp = cos(phi)
+
+    ! convert from a spherical to a Cartesian representation of the moment tensor
+    Mxx = sint*sint*cosp*cosp*Mrr + cost*cost*cosp*cosp*Mtt + sinp*sinp*Mpp &
+        + 2.0d0*sint*cost*cosp*cosp*Mrt - 2.0d0*sint*sinp*cosp*Mrp - 2.0d0*cost*sinp*cosp*Mtp
+
+    Myy = sint*sint*sinp*sinp*Mrr + cost*cost*sinp*sinp*Mtt + cosp*cosp*Mpp &
+        + 2.0d0*sint*cost*sinp*sinp*Mrt + 2.0d0*sint*sinp*cosp*Mrp + 2.0d0*cost*sinp*cosp*Mtp
+
+    Mzz = cost*cost*Mrr + sint*sint*Mtt - 2.0d0*sint*cost*Mrt
+
+    Mxy = sint*sint*sinp*cosp*Mrr + cost*cost*sinp*cosp*Mtt - sinp*cosp*Mpp &
+        + 2.0d0*sint*cost*sinp*cosp*Mrt + sint*(cosp*cosp-sinp*sinp)*Mrp + cost*(cosp*cosp-sinp*sinp)*Mtp
+
+    Mxz = sint*cost*cosp*Mrr - sint*cost*cosp*Mtt &
+        + (cost*cost-sint*sint)*cosp*Mrt - cost*sinp*Mrp + sint*sinp*Mtp
+
+    Myz = sint*cost*sinp*Mrr - sint*cost*sinp*Mtt &
+        + (cost*cost-sint*sint)*sinp*Mrt + cost*cosp*Mrp - sint*cosp*Mtp
+
+  end subroutine rotate_mt
 
   subroutine locate_sources(GF, sources)
 

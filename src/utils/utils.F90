@@ -8,6 +8,20 @@ module utils
 
 contains
 
+  ! function gradient_dp(f, dt) result(f1)
+  !   double precision :: f(:)
+  !   double precision :: dt
+  !   double precision, dimension(:), allocatable :: f1(:)
+
+  !   ! Number of samples
+  !   Nt = size(f)
+
+  !   ! allocate derivative array
+  !   allocate(f1(Nt), stat)
+  !   do i=1, NT
+
+
+  ! end gradient_dp
   ! --------------------------------------------------------------------------
 
   subroutine init_log()

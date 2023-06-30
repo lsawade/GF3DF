@@ -125,4 +125,12 @@ module constants
   integer, parameter :: NLINES_PER_CMTSOLUTION_SOURCE = 13
   integer, parameter :: NLINES_PER_FORCESOLUTION_SOURCE = 11
 
+  ! Perturbation values
+  double precision,parameter :: dmom  = 1.0d23
+  double precision,parameter :: dlat  = 0.0001d0
+  double precision,parameter :: dlon  = 0.0001d0
+  double precision,parameter :: ddep  = 0.01d0
+  double precision,parameter :: dcmt  = -1.d0
+  double precision,parameter :: dhdur = 0.001d0
+
 end module constants

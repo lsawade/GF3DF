@@ -19,5 +19,4 @@ program print_cmt
     call print_source(sources(i), 1)
   enddo
 
-
 end program print_cmt
