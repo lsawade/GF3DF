@@ -26,6 +26,7 @@ contains
 
     if (source%force .eqv. .true.) then
       write (*,*) "Printing of Force source not yet implemented. Sorry."
+      stop "Error"
     else
       ! Define Source
       if ((which == 1) .or. (which == 3)) then

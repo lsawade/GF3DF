@@ -3,11 +3,74 @@ module utils
   implicit none
   private
   public :: throwerror, scaleM, nextpower2, is_digit, is_numeric, get_args, &
-            file_exists, dir_exists, dir_writeable, delete_file, mkdir
+            file_exists, dir_exists, dir_writeable, delete_file, mkdir, &
+            init_log, finalize_log
 
 contains
 
   ! --------------------------------------------------------------------------
+
+  subroutine init_log()
+    use constants, only: IMAIN, ISTANDARD_OUTPUT, LOGFILE
+
+    integer :: ier
+
+    if (IMAIN /= ISTANDARD_OUTPUT) then
+      open(unit=IMAIN,file=trim(LOGFILE),status='unknown',action='write',iostat=ier)
+      call throwerror(ier,'Error opening file output_solver.txt for writing output info')
+    endif
+
+    write(IMAIN,*)
+    write(IMAIN,*) '******************************'
+    write(IMAIN,*) '****     GF3D Logger      ****'
+    write(IMAIN,*) '******************************'
+    write(IMAIN,*)
+    write(IMAIN,*)
+    call flush_IMAIN()
+
+  end subroutine
+
+  subroutine finalize_log()
+
+    use constants, only: IMAIN, ISTANDARD_OUTPUT, LOGFILE
+
+    integer :: ier
+
+    if (IMAIN /= ISTANDARD_OUTPUT) then
+      open(unit=IMAIN,file=trim(LOGFILE),status='unknown',action='write',iostat=ier)
+      call throwerror(ier, 'Error opening file output_solver.txt for writing output info')
+    endif
+
+    write(IMAIN,*)
+    write(IMAIN,*) '******************************'
+    write(IMAIN,*) '****    GF3D finished     ****'
+    write(IMAIN,*) '******************************'
+    write(IMAIN,*)
+    write(IMAIN,*)
+    call flush_IMAIN()
+
+  end subroutine
+
+  subroutine flush_IMAIN()
+
+  use constants, only: IMAIN
+
+  implicit none
+
+  ! only main process writes out to main output file
+  ! file I/O in Fortran is buffered by default
+  !
+  ! note: Fortran2003 includes a FLUSH statement
+  !          which is implemented by most compilers by now
+  !
+  ! otherwise:
+  !   a) comment out the line below
+  !   b) try to use instead: call flush(IMAIN)
+
+  flush(IMAIN)
+
+  end subroutine flush_IMAIN
+
 
   subroutine throwerror(errorflag, message)
 

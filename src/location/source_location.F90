@@ -41,7 +41,7 @@ contains
     use constants, only: R_PLANET, RHOAV, ZERO, &
                         SOURCE_DECAY_MIMIC_TRIANGLE, RADIANS_TO_DEGREES, &
                         R_UNIT_SPHERE, PI_OVER_TWO, PI, IMAIN, GRAV, &
-                        DEGREES_TO_RADIANS, TWO_PI
+                        DEGREES_TO_RADIANS, TWO_PI, DEBUG
     use topo, only: get_topo_bathy
     use spline_routines, only: spline_evaluation
     use utils, only: throwerror
@@ -232,7 +232,6 @@ contains
       ! point depth (in m)
       depth = sources(isource)%depth * 1000.0d0
 
-      write(*,*) "MT depth"
       ! normalized source radius
       r0 = R_UNIT_SPHERE
 
@@ -274,10 +273,10 @@ contains
       sources(isource)%y_target = sources(isource)%r_target*sint*sinp
       sources(isource)%z_target = sources(isource)%r_target*cost
 
-      write (*,*) "Anchors"
-      write (*,*) GF%anchor_iax
-      write (*,*) GF%anchor_iay
-      write (*,*) GF%anchor_iaz
+      if (DEBUG) write(IMAIN,*) "Anchors"
+      if (DEBUG) write(IMAIN,*) GF%anchor_iax
+      if (DEBUG) write(IMAIN,*) GF%anchor_iay
+      if (DEBUG) write(IMAIN,*) GF%anchor_iaz
       ! locates best element and xi/eta/gamma interpolation values
       call locate_point(&
         sources(isource)%x_target, &

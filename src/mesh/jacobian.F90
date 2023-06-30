@@ -33,7 +33,7 @@ contains
   subroutine recompute_jacobian(xelm,yelm,zelm,xi,eta,gamma,x,y,z, &
                                 xix,xiy,xiz,etax,etay,etaz,gammax,gammay,gammaz)
 
-  use constants, only: NGNOD,NDIM,ZERO,HALF,ONE,TWO
+  use constants, only: NGNOD,NDIM,ZERO,HALF,ONE,TWO, IMAIN, DEBUG
 
   implicit none
 
@@ -255,7 +255,7 @@ contains
   jacobian = xxi*(yeta*zgamma-ygamma*zeta) - xeta*(yxi*zgamma-ygamma*zxi) + &
              xgamma*(yxi*zeta-yeta*zxi)
 
-  write(*,*) "jac", jacobian
+  if (DEBUG) write(IMAIN,*) "jac", jacobian
 
 
   if (jacobian <= ZERO) stop '3D Jacobian undefined'

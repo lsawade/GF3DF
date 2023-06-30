@@ -82,9 +82,9 @@ contains
 
     write (*,integerformat)   "ellipticity:",         GF%ellipticity
 
-    write (*,*)
-    write (*,*) "----------- Array info ----------------"
-    write (*,*)
+    write(*,*)
+    write(*,*) "----------- Array info ----------------"
+    write(*,*)
     write(*, integerformat)  "Number of elements:",   size(GF%ibool,4)
     write(*, integerformat)  "Number of GLL:",        size(GF%xyz,  1)
     write(*, integerformat)  "Ellipticity splines #", size(GF%rspl)
@@ -259,7 +259,7 @@ contains
 
   module subroutine load_arrays(file_id, GF)
 
-    use constants, only: GAUSSALPHA, GAUSSBETA
+    use constants, only: GAUSSALPHA, GAUSSBETA, IMAIN, DEBUG
     use gll_library, only: zwgljd
     use lagrange_poly, only: lagrange_any, lagrange_deriv_GLL
     use utils, only: throwerror
@@ -372,11 +372,9 @@ contains
       allocate(GF%ellipticity_spline2(dims_ellipticity(1)))
     endif
 
-
     if (GF%topography == 1) then
       allocate(GF%bathy(GF%nx_bathy, GF%ny_bathy))
     endif
-    write(*,*) "check point"
 
     allocate(GF%ibool(dims_ibool(1), dims_ibool(2), dims_ibool(3), dims_ibool(4)))
     allocate(GF%displacement(dims_displacement(1), &
@@ -396,8 +394,8 @@ contains
     call read_from_hdf5(GF%displacement, name_displacement, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading displacement")
 
-    write(*,*) "post read min ", minval(GF%displacement)
-    write(*,*) "post read max ", maxval(GF%displacement)
+    if (DEBUG) write(IMAIN,*) "post read min ", minval(GF%displacement)
+    if (DEBUG) write(IMAIN,*) "post read max ", maxval(GF%displacement)
 
     call read_from_hdf5(GF%xyz, name_xyz, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading xyz")

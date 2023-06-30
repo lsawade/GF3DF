@@ -645,9 +645,6 @@ contains
       return
     endif
 
-
-    write(*,*) 'post close'
-
     if (error /= 0) got = .false.
   end subroutine read_integer_array_4d
 
@@ -775,13 +772,12 @@ contains
       return
     endif
 
-    ! ! Get dtype
+    ! Get dtype
     dtype_id = get_native_dtype(dset_id, name)
 
     ! Get the datatype and its size.
     call h5dget_type_f(dset_id, filetype, error)
 
-    write(*,*) "filetype", filetype
     call h5tget_size_f(filetype, size, error)
     if (error /= 0) then
       write(*,'("cannot get hdf5 datatype or size",/)')
@@ -793,8 +789,6 @@ contains
       stop
     endif
 
-    write(*,*) "size", size
-
     ! Get dataspace.
     call h5dget_space_f(dset_id, space, error)
     if (error /= 0) then
@@ -802,14 +796,11 @@ contains
       return
     endif
 
-    write(*,*) "space", space
     call h5sget_simple_extent_dims_f(space, dims, maxdims, error)
     if ((error < 0)) then
       write(*,'("cannot get hdf5 extent",/)')
       return
     endif
-
-    write (*,*) "dims", dims, "maxdims", maxdims
 
     allocate(rdata(1:dims(1)))
 

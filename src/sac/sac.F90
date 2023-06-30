@@ -181,7 +181,7 @@ contains
 
     ! begin time
     ! btime = (seismo_offset)*DT - t0 + tshift_src
-    btime = 0.d0 - t_shift + tshift_src
+    btime = 0.d0 - t_shift
 
     B      = sngl(btime) ! [REQUIRED]
     E      = BYSAC       ! [REQUIRED]

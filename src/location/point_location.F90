@@ -43,7 +43,7 @@ contains
         distmin_not_squared)
 
     ! locates target point inside best mesh element
-    use constants, only: HUGEVAL, USE_DISTANCE_CRITERION, R_PLANET_KM
+    use constants, only: HUGEVAL, USE_DISTANCE_CRITERION, R_PLANET_KM, DEBUG, IMAIN
 
     ! for point search
     use kdtree_search, only: kdtree_find_nearest_neighbor
@@ -93,7 +93,7 @@ contains
     ! looks for closer estimates in neighbor elements if needed
     logical,parameter :: DO_ADJACENT_SEARCH = .true.
 
-    logical, parameter :: DEBUG = .true.
+    ! logical, parameter :: DEBUG = .true.
 
     double precision, dimension(:,:), allocatable :: xyz_midpoints
 
@@ -103,8 +103,8 @@ contains
     xyz_midpoints(:,2) = ystore(ibool(MIDX, MIDY, MIDZ, :))
     xyz_midpoints(:,3) = zstore(ibool(MIDX, MIDY, MIDZ, :))
 
-    if (DEBUG) write(*,*) "xyz midpoints"
-    if (DEBUG) write(*,*) xyz_midpoints
+    if (DEBUG) write(IMAIN,*) "xyz midpoints"
+    if (DEBUG) write(IMAIN,*) xyz_midpoints
 
     ! set distance to huge initial value
     distmin_squared = HUGEVAL
@@ -143,7 +143,7 @@ contains
                       + (y_target - dble(ystore(iglob)))*(y_target - dble(ystore(iglob))) &
                       + (z_target - dble(zstore(iglob)))*(z_target - dble(zstore(iglob)))
 
-          write(*,*) "(i,j,k) dist2 (",i,j,k, ")", dist_squared
+          if (DEBUG) write(IMAIN,*) "(i,j,k) dist2 (",i,j,k, ")", dist_squared
           ! take this point if it is closer to the receiver
           !  we compare squared distances instead of distances themselves to significantly speed up calculations
           if (dist_squared < distmin_squared) then
@@ -156,10 +156,10 @@ contains
       enddo
     enddo
 
-    write(*,*) "Ispec selected"
-    write(*,*) ispec_selected
-    write(*,*) "ijk first guess"
-    write(*,*) ix_initial_guess, iy_initial_guess, iz_initial_guess
+    if (DEBUG) write(IMAIN,*) "Ispec selected"
+    if (DEBUG) write(IMAIN,*) ispec_selected
+    if (DEBUG) write(IMAIN,*) "ijk first guess"
+    if (DEBUG) write(IMAIN,*) ix_initial_guess, iy_initial_guess, iz_initial_guess
 
     ! ****************************************
     ! find the best (xi,eta,gamma)
@@ -242,7 +242,7 @@ contains
                                     anchor_iax,anchor_iay,anchor_iaz,xigll,yigll,zigll, &
                                     POINT_CAN_BE_BURIED)
 
-  use constants, only: NGNOD,HUGEVAL,NUM_ITER
+  use constants, only: NGNOD,HUGEVAL,NUM_ITER, IMAIN, DEBUG
   use jacobian, only: recompute_jacobian
   implicit none
 
@@ -274,8 +274,6 @@ contains
   double precision, intent(inout) :: etax,etay,etaz
   double precision, intent(inout) :: gammax,gammay,gammaz
 
-  logical, parameter :: DEBUG = .true.
-
   ! define coordinates of the control points of the element
   do ia = 1,NGNOD
     iglob = ibool(anchor_iax(ia),anchor_iay(ia),anchor_iaz(ia),ispec_selected)
@@ -284,21 +282,21 @@ contains
     zelm(ia) = dble(zstore(iglob))
   enddo
 
-  if (DEBUG) write (*,*) "Anchors"
-  if (DEBUG) write (*,*) xelm
-  if (DEBUG) write (*,*) yelm
-  if (DEBUG) write (*,*) zelm
+  if (DEBUG) write (IMAIN,*) "Anchors"
+  if (DEBUG) write (IMAIN,*) xelm
+  if (DEBUG) write (IMAIN,*) yelm
+  if (DEBUG) write (IMAIN,*) zelm
 
   ! use initial guess in xi and eta
-  if (DEBUG) write (*,*) "xigll"
-  if (DEBUG) write (*,*) xigll
+  if (DEBUG) write (IMAIN,*) "xigll"
+  if (DEBUG) write (IMAIN,*) xigll
   xi = xigll(ix_initial_guess)
   eta = yigll(iy_initial_guess)
   gamma = zigll(iz_initial_guess)
 
-  if (DEBUG) write (*,*) 'initial guess'
-  if (DEBUG) write (*,*) xi, eta, gamma
-  if (DEBUG) write (*,*)
+  if (DEBUG) write (IMAIN,*) 'initial guess'
+  if (DEBUG) write (IMAIN,*) xi, eta, gamma
+  if (DEBUG) write (IMAIN,*)
 
   ! impose receiver exactly at the surface
   if (.not. POINT_CAN_BE_BURIED) gamma = 1.d0
@@ -309,15 +307,15 @@ contains
   dz_min = HUGEVAL
 
   ! iterate to solve the non linear system
-  if (DEBUG) write (*,*) "START", x_target, y_target, z_target
-  if (DEBUG) write (*,*) "     ", xi, eta, gamma
-  if (DEBUG) write (*,*)
+  if (DEBUG) write (IMAIN,*) "START", x_target, y_target, z_target
+  if (DEBUG) write (IMAIN,*) "     ", xi, eta, gamma
+  if (DEBUG) write (IMAIN,*)
 
-  if (DEBUG) write (*,*) "START   x ", x_target, y_target, z_target
-  if (DEBUG) write (*,*) "       xi ", xi, eta, gamma
-  if (DEBUG) write (*,*) "      xix ", xix,xiy,xiz
-  if (DEBUG) write (*,*) "     etax ", etax,etay,etaz
-  if (DEBUG) write (*,*) "   gammax ", gammax,gammay,gammaz
+  if (DEBUG) write (IMAIN,*) "START   x ", x_target, y_target, z_target
+  if (DEBUG) write (IMAIN,*) "       xi ", xi, eta, gamma
+  if (DEBUG) write (IMAIN,*) "      xix ", xix,xiy,xiz
+  if (DEBUG) write (IMAIN,*) "     etax ", etax,etay,etaz
+  if (DEBUG) write (IMAIN,*) "   gammax ", gammax,gammay,gammaz
 
   ! iterate to solve the non linear system
   do iter_loop = 1,NUM_ITER
@@ -332,7 +330,7 @@ contains
     dy = - (y - y_target)
     dz = - (z - z_target)
 
-    if (DEBUG) write (*,*) '  iter ',iter_loop,'dx',sngl(dx),sngl(dx_min),'dy', &
+    if (DEBUG) write (IMAIN,*) '  iter ',iter_loop,'dx',sngl(dx),sngl(dx_min),'dy', &
                                 sngl(dy),sngl(dy_min),'dz',sngl(dz),sngl(dz_min),d_min_sq
 
     ! compute increments

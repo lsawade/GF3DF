@@ -1,10 +1,43 @@
 module interpolation
 
   private
-  public :: interpolateMT, spline1d, interp1d
+  public :: interpolateMT, spline1d, interp1d, spline1d_seismograms
 
 
 contains
+
+  subroutine spline1d_seismograms(t, seismograms, tq, seisq)
+    implicit none
+
+    ! Arguments
+    double precision, dimension(:), intent(in) :: t
+    double precision, dimension(:), intent(in) :: tq
+    double precision, dimension(:,:,:), intent(in) :: seismograms
+
+    ! OUT
+    double precision, dimension(:,:,:), intent(out) :: seisq
+
+    ! Local
+    integer :: istat, icomp
+    integer :: Nstat, Ncomp
+
+    ! Get number of stations
+    Nstat = size(seismograms, dim=1)
+    Ncomp = size(seismograms, dim=2)
+
+    ! Interpolate using splines.
+    do istat=1,Nstat
+      do icomp=1,Ncomp
+        call spline1d(t,seismograms(istat, icomp, :),tq, seisq(istat, icomp, :))
+      enddo
+    enddo
+
+
+  end subroutine spline1d_seismograms
+
+  ! ============================================================================
+  ! ============================================================================
+  ! ============================================================================
 
   subroutine spline1d(x,y,xq,yq)
     use splines, only: spline
@@ -38,6 +71,9 @@ contains
 
   end subroutine spline1d
 
+  ! ============================================================================
+  ! ============================================================================
+  ! ============================================================================
 
   subroutine interp1d( xData, yData, xVal, yVal )
   !
@@ -104,6 +140,10 @@ contains
       yVal(inputIndex) = (1.0-weight)*yData(dataIndex) + weight*yData(dataIndex+1)
     enddo
   end subroutine interp1d
+
+  ! ============================================================================
+  ! ============================================================================
+  ! ============================================================================
 
   subroutine interpolateMT(&
     displacement, NSTAT, NT, NGLLX, NGLLY, NGLLZ, xigll, yigll, zigll, &

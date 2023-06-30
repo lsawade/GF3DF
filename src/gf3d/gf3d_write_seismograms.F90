@@ -13,7 +13,7 @@ contains
     use gf3d_get_seismograms, only: get_seismograms
     use setup_source_location, only: setup_point_search_arrays
     use sac, only: write_output_SAC
-    use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN
+    use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN, IMAIN
     use sources, only: read_cmt, t_source
     use gf, only: t_GF, read_GF
 
@@ -45,10 +45,10 @@ contains
 
     do k=1,size(GF%displacement,1)
 
-      write(*,*) trim(GF%networks(k)), ".", trim(GF%stations(k))
+
 
       do icomp=1,NCHANNELS
-
+        write(IMAIN,*)  "Writing ", trim(GF%networks(k)), ".", trim(GF%stations(k)), ".", trim(channels(icomp))
         write(sisname,"('/',a,'.',a,'.',a3,'.sem')") &
         trim(GF%networks(k)), trim(GF%stations(k)), trim(channels(icomp))
 
