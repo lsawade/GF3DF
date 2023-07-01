@@ -4,24 +4,59 @@ module utils
   private
   public :: throwerror, scaleM, nextpower2, is_digit, is_numeric, get_args, &
             file_exists, dir_exists, dir_writeable, delete_file, mkdir, &
-            init_log, finalize_log
+            init_log, finalize_log, gradient
+
+  interface gradient
+    module procedure gradient_dp, gradient_3d_array_dim3
+  end interface
 
 contains
 
-  ! function gradient_dp(f, dt) result(f1)
-  !   double precision :: f(:)
-  !   double precision :: dt
-  !   double precision, dimension(:), allocatable :: f1(:)
+  subroutine gradient_dp(f, dx, f1)
+    double precision, intent(in) :: f(:)
+    double precision, intent(in) :: dx
+    double precision, intent(out) :: f1(:)
+    integer :: i, Nx
 
-  !   ! Number of samples
-  !   Nt = size(f)
+    ! Number of samples
+    Nx = size(f)
 
-  !   ! allocate derivative array
-  !   allocate(f1(Nt), stat)
-  !   do i=1, NT
+    ! allocate derivative array
+    do i=1, Nx
+      if (i==1) then
+        f1(i) = (f(i+1)-f(i))/dx
+      else if (i==Nx) then
+        f1(i) = (f(Nx)-f(i-1))/dx
+      else
+        f1(i) = (f(i+1) -f(i-1))/(2*dx)
+      end if
 
+    end do
 
-  ! end gradient_dp
+  end subroutine gradient_dp
+
+  subroutine gradient_3d_array_dim3(f, dx, f1)
+    double precision, intent(in) :: f(:,:,:)
+    double precision, intent(in) :: dx
+    double precision, intent(out) :: f1(:,:,:)
+    integer :: i,j,k, Ndim1, Ndim2, Nx
+
+    ! Number of samples
+    Ndim1 = size(f, dim=1)
+    Ndim2 = size(f, dim=2)
+    Nx = size(f, dim=3)
+
+    ! allocate derivative array
+    do k=1,Ndim1
+      do j=1,Ndim2
+        do i=1, Nx
+          call gradient_dp(f(k,j,:), dx, f1(k,j,:))
+        end do
+      end do
+    end do
+
+  end subroutine gradient_3d_array_dim3
+
   ! --------------------------------------------------------------------------
 
   subroutine init_log()

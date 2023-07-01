@@ -57,6 +57,17 @@ module gf3d
       logical, intent(in) :: OUTPUT_SEISMOS_SAC_ALPHANUM
       logical, intent(in) :: OUTPUT_SEISMOS_SAC_BINARY
     end subroutine
+
+    module subroutine write_seismograms_sdp(&
+      GF_filename, source_filename, output_dir, &
+      itypsokern, &
+      OUTPUT_SEISMOS_SAC_ALPHANUM, &
+      OUTPUT_SEISMOS_SAC_BINARY)
+      character(len=*), intent(in) :: GF_filename, source_filename, output_dir
+      integer, intent(in) :: itypsokern
+      logical, intent(in) :: OUTPUT_SEISMOS_SAC_ALPHANUM
+      logical, intent(in) :: OUTPUT_SEISMOS_SAC_BINARY
+    end subroutine
   end interface write_seismograms
 
   interface get_seismograms_winsta

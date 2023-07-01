@@ -173,7 +173,6 @@ contains
     OUTPUT_SEISMOS_SAC_ALPHANUM, &
     OUTPUT_SEISMOS_SAC_BINARY)
 
-    use gf3d_get_seismograms, only: get_seismograms
     use setup_source_location, only: setup_point_search_arrays
     use sac, only: write_output_SAC
     use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN, IMAIN

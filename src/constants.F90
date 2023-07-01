@@ -45,11 +45,11 @@ module constants
   integer, parameter :: IIN = 40,IOUT = 41
 
   ! uncomment this to write messages to a text file
-  integer, parameter :: IMAIN = 42
+  ! integer, parameter :: IMAIN = 42
   character(len=256) :: LOGFILE = 'gf3d_log.txt'
 
   ! uncomment this to write messages to the screen (slows down the code)
-  ! integer, parameter :: IMAIN = ISTANDARD_OUTPUT
+  integer, parameter :: IMAIN = ISTANDARD_OUTPUT
 
   ! I/O unit for sac files
   integer, parameter :: IOUT_SAC = 48
@@ -126,6 +126,8 @@ module constants
   integer, parameter :: NLINES_PER_FORCESOLUTION_SOURCE = 11
 
   ! Perturbation values
+  character(len=4), dimension(11) :: partialnames = &
+    (/"mrr", "mtt", "mpp", "mrt", "mrp", "mtp", "lat", "lon", "dep", "cmt", "hdr"/)
   double precision,parameter :: dmom  = 1.0d23
   double precision,parameter :: dlat  = 0.0001d0
   double precision,parameter :: dlon  = 0.0001d0
