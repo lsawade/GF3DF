@@ -211,19 +211,19 @@ contains
           h_y = h_xi * xiy + h_eta * etay + h_gamma * gammay
           h_z = h_xi * xiz + h_eta * etaz + h_gamma * gammaz
 
-          do istat=1,NSTAT
-            do icomp=1,NCOMP
-              epsilon(istat, icomp, 1, :) = epsilon(istat, icomp, 1, :) + (displacement(istat,icomp,1,i,j,k,:) * h_x)
-              epsilon(istat, icomp, 2, :) = epsilon(istat, icomp, 2, :) + (displacement(istat,icomp,2,i,j,k,:) * h_y)
-              epsilon(istat, icomp, 3, :) = epsilon(istat, icomp, 3, :) + (displacement(istat,icomp,3,i,j,k,:) * h_z)
-              epsilon(istat, icomp, 4, :) = epsilon(istat, icomp, 4, :) + 0.5 * (displacement(istat,icomp,2,i,j,k,:) * h_x &
-                                                    + displacement(istat,icomp,1,i,j,k,:) * h_y)
-              epsilon(istat, icomp, 5, :) = epsilon(istat, icomp, 5, :) + 0.5 * (displacement(istat,icomp,3,i,j,k,:) * h_x &
-                                                    + displacement(istat,icomp,1,i,j,k,:) * h_z)
-              epsilon(istat, icomp, 6, :) = epsilon(istat, icomp, 6, :) + 0.5 * (displacement(istat,icomp,3,i,j,k,:) * h_y &
-                                                    + displacement(istat,icomp,2,i,j,k,:) * h_z)
-            enddo
-          enddo
+          ! do istat=1,NSTAT
+          !   do icomp=1,NCOMP
+          epsilon(:, :, 1, :) = epsilon(:, :, 1, :) + (displacement(:,:,1,i,j,k,:) * h_x)
+          epsilon(:, :, 2, :) = epsilon(:, :, 2, :) + (displacement(:,:,2,i,j,k,:) * h_y)
+          epsilon(:, :, 3, :) = epsilon(:, :, 3, :) + (displacement(:,:,3,i,j,k,:) * h_z)
+          epsilon(:, :, 4, :) = epsilon(:, :, 4, :) + 0.5 * (displacement(:,:,2,i,j,k,:) * h_x &
+                                                + displacement(:,:,1,i,j,k,:) * h_y)
+          epsilon(:, :, 5, :) = epsilon(:, :, 5, :) + 0.5 * (displacement(:,:,3,i,j,k,:) * h_x &
+                                                + displacement(:,:,1,i,j,k,:) * h_z)
+          epsilon(:, :, 6, :) = epsilon(:, :, 6, :) + 0.5 * (displacement(:,:,3,i,j,k,:) * h_y &
+                                                + displacement(:,:,2,i,j,k,:) * h_z)
+          !   enddo
+          ! enddo
         enddo
       enddo
     enddo
