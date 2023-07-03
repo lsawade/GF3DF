@@ -47,7 +47,7 @@ contains
 
     use fftpack, only: rk, fft, ifft, fftfreq
     use utils, only: nextpower2
-    use constants, only: PI
+    use constants, only: PI, DEBUG
 
     ! In
     double precision, dimension(:,:,:), intent(in) :: data             ! array
@@ -57,6 +57,7 @@ contains
 
     ! Local
     integer :: k, Nk, i, Ni, NP2, NT
+    real :: start, finish
     complex(kind=rk), dimension(:), allocatable :: cstf
     complex(kind=rk), dimension(:), allocatable :: pshift
     complex(kind=rk), dimension(:), allocatable :: convo
@@ -68,6 +69,9 @@ contains
     double precision, dimension(:,:,:), allocatable :: stf_convolution ! Output traces
 
     !------
+
+    if (DEBUG) call cpu_time(start)
+
 
     ! Get shape of stf
     Nk = size(data, dim=1)
@@ -111,6 +115,10 @@ contains
 
       enddo
     enddo
+
+
+    if (DEBUG) call cpu_time(finish)
+    if (DEBUG) print '("\n    stf_convolution took ",f6.3," seconds.\n")', finish-start
 
 
   end function stf_convolution

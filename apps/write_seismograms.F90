@@ -205,9 +205,6 @@ program w
 
 
 
-  ! call cpu_time(finish)
-  ! print '("Time = ",f6.3," seconds.")',finish-start
-  ! print '("AvgTime = ",f6.3," seconds.")',(finish-start)/niter
 
 
  end program get_seismograms

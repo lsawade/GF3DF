@@ -152,13 +152,15 @@ contains
     seismograms)
 
     use lagrange_poly, only: lagrange_any
-
+    use constants, only: DEBUG
     implicit none
 
     ! IN
     double precision, dimension(:,:,:,:,:,:,:), intent(in) :: displacement
     integer :: NSTAT, NGLLX, NGLLY, NGLLZ
     integer(kind=8) :: NT
+    real :: start, finish
+    real :: startsub, finishsub
     double precision, intent(in) :: Mxx, Myy, Mzz, Mxy, Mxz, Myz
     double precision,intent(in) :: xi,eta,gamma
     double precision, intent(in) :: xix, xiy, xiz
@@ -172,25 +174,28 @@ contains
     double precision, dimension(:,:,:), intent(out) :: seismograms
 
     ! Local
+    integer,parameter :: NCOMP = 3
     double precision, dimension(NGLLX) :: hxi, hpxi
     double precision, dimension(NGLLY) :: heta, hpeta
     double precision, dimension(NGLLZ) :: hgamma, hpgamma
     double precision :: h_x, h_y, h_z, h_xi, h_eta, h_gamma
     double precision, dimension(6) :: moment_tensor
-    double precision, dimension(:,:,:,:), allocatable :: epsilon
+    double precision, dimension(NSTAT, NCOMP, 6, NT) :: epsilon
     integer :: istat, icomp, im, i, j, k
-    integer :: NCOMP = 3
 
-    allocate(epsilon(NSTAT, NCOMP, 6, NT))
+    if (DEBUG) call cpu_time(start)
 
     ! Initialize(!) we are summing over this one!
     epsilon(:,:,:,:) = 0.d0
+
 
     ! Get interpolation values
     call lagrange_any(xi,NGLLX,xigll,hxi,hpxi)
     call lagrange_any(eta,NGLLY,yigll,heta,hpeta)
     call lagrange_any(gamma,NGLLZ,zigll,hgamma,hpgamma)
 
+
+    if (DEBUG) call cpu_time(startsub)
 
     do k=1, NGLLZ
       do j=1, NGLLY
@@ -223,6 +228,10 @@ contains
       enddo
     enddo
 
+    if (DEBUG) call cpu_time(finishsub)
+    if (DEBUG) print '("    ____mainloop took ",f6.3," seconds.")', finishsub-startsub
+
+
     ! Initialize dot product
     moment_tensor(1) = Mxx
     moment_tensor(2) = Myy
@@ -237,8 +246,8 @@ contains
       seismograms(:,:,:) = seismograms(:,:,:) + epsilon(:,:,im,:) * moment_tensor(im)
     enddo
 
-
-    deallocate(epsilon)
+    if (DEBUG) call cpu_time(finish)
+    if (DEBUG) print '("    interpolateMT took ",f6.3," seconds.")', finish-start
 
   end subroutine interpolateMT
 

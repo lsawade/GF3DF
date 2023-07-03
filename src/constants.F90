@@ -1,6 +1,6 @@
 module constants
 
-  logical :: DEBUG = .false.
+  logical :: DEBUG = .true.
 
   ! Some constant numbers
   double precision, parameter :: ONE = 1.0

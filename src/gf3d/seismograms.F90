@@ -106,8 +106,6 @@ contains
     ! Get synthetics
     call interpolate_source(GF, sources(1), seismograms)
 
-    if (DEBUG) write(IMAIN, *) "Interpolated base seismograms."
-
     ! Convolve seismogram array with STF
     convolution(:,:,:) = stf_convolution(seismograms, stf, GF%dt, tc - sources(1)%time_shift)
 

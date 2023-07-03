@@ -9,6 +9,7 @@ contains
     use gf, only: t_GF
     use sources, only: t_source
     use interpolation, only: interpolateMT
+    use constants, only: DEBUG
 
     ! In
     type(t_GF), intent(in) :: GF
@@ -18,10 +19,10 @@ contains
 
     ! Local
     integer :: i,j,k,iglob
-    double precision, dimension(:,:,:,:,:,:,:), allocatable :: displacement
+    real :: start, finish
+    double precision, dimension(size(GF%displacement,1), 3, 3, GF%ngllx,GF%nglly,GF%ngllz,GF%nsteps) :: displacement
 
-    ! Allocate temporary displacement array
-    allocate(displacement(size(GF%displacement,1), 3, 3, GF%ngllx,GF%nglly,GF%ngllz,GF%nsteps))
+    if (DEBUG) call cpu_time(start)
 
     ! Get displacement array
     do k=1,GF%ngllz
@@ -47,6 +48,10 @@ contains
           source%gammax, source%gammay, source%gammaz, &
           seismograms)
     endif
+
+    if (DEBUG) call cpu_time(finish)
+    if (DEBUG) print '("interpolate_source took ",f6.3," seconds.")', finish-start
+
   end subroutine interpolate_source
 
 end submodule
