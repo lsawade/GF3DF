@@ -39,6 +39,7 @@ add_subdirectory(gf3d)
 
 target_link_libraries(
     gf3d
+    # hdf5_fortran
     utils
     sources
     gf
@@ -65,8 +66,6 @@ target_link_libraries(
     heap_sort
     stf
     error_functions
-    # Fortran HDF5 library
-    hdf5_fortran
 )
 
 # # Create HDF5 utilities

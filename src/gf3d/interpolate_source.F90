@@ -18,7 +18,7 @@ contains
     double precision, dimension(:,:,:) :: seismograms
 
     ! Local
-    double precision, dimension(:,:,:,:,:,:,:) :: displacement
+    double precision, dimension(size(GF%displacement,1), 3, 3, GF%ngllx,GF%nglly,GF%ngllz,GF%nsteps) :: displacement
     integer :: i,j,k,iglob
     real :: start, finish
 
@@ -61,6 +61,9 @@ contains
     use sources, only: t_source
     use interpolation, only: interpolateMT
     use constants, only: DEBUG
+    use lagrange_poly, only: lagrange_any
+
+    implicit none
 
     ! In
     type(t_GF), intent(in) :: GF
@@ -70,64 +73,59 @@ contains
 
     ! Local
     integer :: i,j,k,iglob
+    integer,parameter :: NCOMP = 3
     real :: start, finish
-    double precision, dimension(size(GF%displacement,1), 3, 3, GF%ngllx,GF%nglly,GF%ngllz,GF%nsteps) :: displacement
+    double precision, dimension(GF%NGLLX) :: hxi, hpxi
+    double precision, dimension(GF%NGLLY) :: heta, hpeta
+    double precision, dimension(GF%NGLLZ) :: hgamma, hpgamma
+    double precision :: h_x, h_y, h_z, h_xi, h_eta, h_gamma
+
+    ! Initialize seismograms
+    seismograms(:,:,:) = 0.d0
 
     if (DEBUG) call cpu_time(start)
-
-    ! Get displacement array
-    do k=1,GF%ngllz
-      do j=1,GF%nglly
-        do i=1,GF%ngllx
-
-          displacement(:,:,:,i,j,k, :) =
-        enddo
-      enddo
-    enddo
 
     if (source%force) then
       call throwerror(-1, "Force source interpolation not implemented.")
     else
 
-
       ! Get interpolation values
-    call lagrange_any(xi,NGLLX,xigll,hxi,hpxi)
-    call lagrange_any(eta,NGLLY,yigll,heta,hpeta)
-    call lagrange_any(gamma,NGLLZ,zigll,hgamma,hpgamma)
+      call lagrange_any(source%xi,GF%NGLLX,GF%xigll,hxi,hpxi)
+      call lagrange_any(source%eta,GF%NGLLY,GF%yigll,heta,hpeta)
+      call lagrange_any(source%gamma,GF%NGLLZ,GF%zigll,hgamma,hpgamma)
 
+      do k=1, GF%NGLLZ
+        do j=1, GF%NGLLY
+          do i=1, GF%NGLLX
 
-    if (DEBUG) call cpu_time(startsub)
+            iglob = GF%ibool(i,j,k, source%ispec)
 
-    seismograms(:,:,:) = 0.d0
-    do k=1, NGLLZ
-      do j=1, NGLLY
-        do i=1, NGLLX
+            ! Compute derivative with respect to element coordinates
+            h_xi = hpxi(i)* heta(j) * hgamma(k)
+            h_eta = hxi(i) * hpeta(j) * hgamma(k)
+            h_gamma = hxi(i) * heta(j) * hpgamma(k)
 
-          iglob = GF%ibool(i,j,k, source%ispec)
+            ! Transform derivative using the Jacobian values
+            h_x = h_xi * source%xix + h_eta * source%etax + h_gamma * source%gammax
+            h_y = h_xi * source%xiy + h_eta * source%etay + h_gamma * source%gammay
+            h_z = h_xi * source%xiz + h_eta * source%etaz + h_gamma * source%gammaz
 
-          ! Compute derivative with respect to element coordinates
-          h_xi = hpxi(i)* heta(j) * hgamma(k)
-          h_eta = hxi(i) * hpeta(j) * hgamma(k)
-          h_gamma = hxi(i) * heta(j) * hpgamma(k)
+            ! Compute everything at once
+            seismograms(:,:,:) = seismograms(:,:,:) &
+              + (GF%displacement(:,:,1,iglob,:) * h_x) * source%Mxx &
+              + (GF%displacement(:,:,2,iglob,:) * h_y) * source%Myy &
+              + (GF%displacement(:,:,3,iglob,:) * h_z) * source%Mzz &
+              + (GF%displacement(:,:,2,iglob,:) * h_x &
+                + GF%displacement(:,:,1,iglob,:) * h_y) * source%Mxy &
+              + (GF%displacement(:,:,3,iglob,:) * h_x &
+                + GF%displacement(:,:,1,iglob,:) * h_z) * source%Mxz &
+              + (GF%displacement(:,:,3,iglob,:) * h_y &
+                + GF%displacement(:,:,2,iglob,:) * h_z) * source%Myz
 
-          ! Transform derivative using the Jacobian values
-          h_x = h_xi * xix + h_eta * etax + h_gamma * gammax
-          h_y = h_xi * xiy + h_eta * etay + h_gamma * gammay
-          h_z = h_xi * xiz + h_eta * etaz + h_gamma * gammaz
-
-          ! Compute everything at once
-          seismograms(:,:,:) = seismograms(:,:,:) + (GF%displacement(:,:,1,iglob,:) * h_x) * moment_tensor(1) &
-                                                  + (GF%displacement(:,:,2,iglob,:) * h_y) * moment_tensor(2) &
-                                                  + (GF%displacement(:,:,3,iglob,:) * h_z) * moment_tensor(3) &
-                                                  + 0.5 * (GF%displacement(:,:,2,iglob,:) * h_x &
-                                                    + GF%displacement(:,:,1,iglob,:) * h_y) * moment_tensor(4) &
-                                                  + 0.5 * (GF%displacement(:,:,3,iglob,:) * h_x &
-                                                    + GF%displacement(:,:,1,iglob,:) * h_z) * moment_tensor(5) &
-                                                  + 0.5 * (GF%displacement(:,:,3,iglob,:) * h_y &
-                                                    + GF%displacement(:,:,2,iglob,:) * h_z) * moment_tensor(6) &
+          enddo
         enddo
       enddo
-    enddo
+    endif
 
     if (DEBUG) call cpu_time(finish)
     if (DEBUG) print '("interpolate_source took ",f6.3," seconds.")', finish-start

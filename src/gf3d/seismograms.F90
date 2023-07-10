@@ -159,23 +159,19 @@ contains
         ! Assign moment tensor to array for simpler
         call rotate_mt(&
           dmom_source(i)%latitude, dmom_source(i)%longitude, &
-          tM(1), tM(2), tM(3), tM(4), tM(5), tM(6), &
+          dmom_source(i)%Mrr, dmom_source(i)%Mtt, dmom_source(i)%Mpp, &
+          dmom_source(i)%Mrt, dmom_source(i)%Mrp, dmom_source(i)%Mtp, &
           dmom_source(i)%Mxx, dmom_source(i)%Myy, dmom_source(i)%Mzz, &
           dmom_source(i)%Mxy, dmom_source(i)%Mxz, dmom_source(i)%Myz)
 
         write(IMAIN, *) &
-          tM_test(1), tM_test(2), tM_test(3), &
-          tM_test(4), tM_test(5), tM_test(6)
+          dmom_source(i)%Mrr, dmom_source(i)%Mtt, dmom_source(i)%Mpp, &
+          dmom_source(i)%Mrt, dmom_source(i)%Mrp, dmom_source(i)%Mtp
+
         write(IMAIN, *) &
           dmom_source(i)%Mxx, dmom_source(i)%Myy, dmom_source(i)%Mzz, &
           dmom_source(i)%Mxy, dmom_source(i)%Mxz, dmom_source(i)%Myz
 
-        write(IMAIN, *) &
-          tM(1), tM(2), tM(3), &
-          tM(4), tM(5), tM(6)
-        write(IMAIN, *) &
-          dmom_source(i)%Mrr, dmom_source(i)%Mtt, dmom_source(i)%Mpp, &
-          dmom_source(i)%Mrt, dmom_source(i)%Mrp, dmom_source(i)%Mtp
 
         ! Get synthetics
         call interpolate_source(GF, dmom_source(i), seismograms)

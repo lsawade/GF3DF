@@ -11,6 +11,6 @@ target_link_libraries(
     error_functions
 )
 
-# target_link_libraries(
-#     hdf5_utils
-#     hdf5_fortran)
+target_link_libraries(
+    hdf5_utils
+    hdf5_fortran)
