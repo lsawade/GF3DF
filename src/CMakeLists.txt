@@ -16,18 +16,57 @@ add_subdirectory(fftpack-sources)
 
 # Utilities of various origin
 add_subdirectory(utils)
+target_link_libraries(
+    utils
+    constants
+)
+target_link_libraries(
+    kdtree_search
+    heap_sort
+)
 
 # The code for locating a source in the mesh is here
 add_subdirectory(mesh)
 
+
 add_subdirectory(sources)
+target_link_libraries(
+    sources
+    calendar
+)
+
 add_subdirectory(gf)
+target_link_libraries(
+    gf
+    kdtree_search
+    hex_nodes
+    hdf5_utils
+)
 
 # Files for setup and perform source location in the mesh
 add_subdirectory(location)
 
+target_link_libraries(
+    source_location
+    point_location
+    kdtree_search
+    rthetaphi_xyz
+    reduce
+    topo
+    spline_routines
+    sources
+)
+target_link_libraries(
+    point_location
+    jacobian
+)
+
 # Interpolation routines
 add_subdirectory(interpolation)
+target_link_libraries(
+    interpolation
+    lagrange_poly
+)
 
 # SAC writing
 add_subdirectory(sac)
@@ -40,34 +79,38 @@ add_subdirectory(gf3d)
 target_link_libraries(
     gf3d
     utils
-    sources
-    gf
-    fftpack
     interpolation
+    gf
+    sources
     sac
-    # location directory
-    setup_source_location
-    kdtree_search
-    point_location
     source_location
-    # mesh directory
-    gll_library
-    hex_nodes
-    jacobian
-    lagrange_poly
-    reduce
-    rthetaphi_xyz
-    spline_routines
-    topo
-    # Utils directory
-    calendar
-    hdf5_utils
-    heap_sort
     stf
-    error_functions
-    # Fortran HDF5 library
-    hdf5_fortran
 )
+    # sources
+    # gf
+    # fftpack
+    # interpolation
+    # sac
+    # # location directory
+    # kdtree_search
+    # point_location
+    # source_location
+    # # mesh directory
+    # gll_library
+    # hex_nodes
+    # jacobian
+    # lagrange_poly
+    # reduce
+    # rthetaphi_xyz
+    # spline_routines
+    # topo
+    # # Utils directory
+    # calendar
+    # hdf5_utils
+    # heap_sort
+    # stf
+    # error_functions
+
 
 # # Create HDF5 utilities
 # add_library(hdf5_utils hdf5_utils.F90)

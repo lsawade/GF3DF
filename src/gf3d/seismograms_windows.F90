@@ -173,7 +173,6 @@ contains
     OUTPUT_SEISMOS_SAC_ALPHANUM, &
     OUTPUT_SEISMOS_SAC_BINARY)
 
-    use setup_source_location, only: setup_point_search_arrays
     use sac, only: write_output_SAC
     use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN, IMAIN
     use sources, only: read_cmt, t_source
@@ -202,7 +201,7 @@ contains
     GF = read_GF(GF_filename)
 
     ! Setup KDTree
-    call setup_point_search_arrays(GF)
+    call GF%get_kdtree()
 
     ! Read cmt solution
     sources = read_cmt(source_filename)

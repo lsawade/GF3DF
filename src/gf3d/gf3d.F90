@@ -7,7 +7,7 @@ module gf3d
   use stf, only: get_stf
   use sac, only: write_output_SAC
   use interpolation, only: spline1d, interp1d
-  use setup_source_location, only: setup_point_search_arrays
+  ! use setup_source_location, only: setup_point_search_arrays
   use fftpack
 
   ! High level functions

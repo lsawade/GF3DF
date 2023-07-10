@@ -60,9 +60,8 @@ program get_sac_seismograms_sdp
   ! Given the filename we can first load the Green function
   GF = read_GF(hdf5_filename)
 
-  ! Setup KDTree, this has to be done like this du to module structure
-  ! I might change this later, but only if I have a better idea.
-  call setup_point_search_arrays(GF)
+  ! Setup KDTree
+  call GF%get_kdtree()
 
   ! Define Source parameters (I assume here you have your own parameters)
   sources(1)%latitude = -31.1300

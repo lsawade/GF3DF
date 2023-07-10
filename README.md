@@ -1,18 +1,44 @@
-# Fortran bindings to read GF3D produced subset files
+# GF3DF
 
-Organization of the code could be better. I'm not quite sure whether the going
-down the `submodule` route is the right thing. I have to write an extra
-interface for every function in the main module. Either way, that can wait.
-Right now, I'm just keeping the convention with module names so that
-`src/<dir>/<dir>.F90` has submodules `src/<dir>/<dir>_<sub>.F90`. I don't think
-this is very clean, but an ok way to get around the `*.mod` having unique names
-convention.
+Fortran extraction tool for [Specfem](https://github.com/SPECFEM/specfem3d_globe)
+and [GF3D](https://github.com/lsawade/GF3D) generated Green function database
+subset files. The main intent of this repo to include 3D Green functions in the
+[GCMT project](https://www.globalcmt.org)'s CMT inversion routine.
+
+
+## Quickstart
+
+```bash
+git clone
+cd /path/to/gf3df/
+cmake -S . -B build
+cmake --build build
+```
+
+## Dependencies
+
+- **Fortran compiler** -- Tested only gfortran so far; most recently GNU Fortran
+  13.1.0. Have not tried any other setups.
+- **CMake** -- currently I'm running with Cmake 3.26.4, and I haven't really tested
+  any other cmake setups. The package is not really using any "crazy" CMake
+  functionalities, so I'm not too worried about the whole thing.
+- **HDF5** -- I have tested with a few different HDF5 packages, but since the
+  function that I'm using are pretty basic reading functions it has been working
+  with all of them (1.10, 1.12, 1.14).
+
+Random tests that worked as well:
+- Using a parallel hdf5 implementation
+
+
+## Shared library
 
 If you want to build a shared library, please use the `-fPIC` flag
 ```bash
 export CFLAGS="-fPIC"
 export FFLAGS="-fPIC"
 ```
+
+## HDF5
 
 Whether you use your own built parallel HDF5 or a cluster non-mpi HDF5, both
 should work fine! Just make sure that the compilers are the same so that there
@@ -26,19 +52,11 @@ export HDF5_ROOT=/path/to/hdf5
 `cmake` will automatically find the include dirs and libraries related to the
 `HDF5` installation.
 
-Then, you can build the package using
 
-```bash
-cd /path/to/gf3df/
-cmake -S . -B build
-cmake --build build
-```
 
 For using the modules in your own package add `/path/to/gf3df/build/include` to
 your compilation and in fortran you should be able to just `use gf3d`.
 
-
-## Building with HDF5
 
 ```bash
 export HDF5_ROOT="/home/lsawade/ph5py-testing/hdf5/build/phdf5"
@@ -58,6 +76,18 @@ Just building and running
 ```bash
 cmake --build build && ./bin/gf3d single_element.h5
 ```
+
+
+
+---
+
+## Notes on code structure
+
+Organization of the code could be better. I'm not quite sure whether the going
+down the `submodule` route is the right thing, I did however start changing the
+library into something that is a set of `submodules` with interfaces -- if
+needed -- in the main module. I'll try to rearrange the software a little more.
+
 
 ## Known Issues
 

@@ -16,11 +16,12 @@ if(POLICY CMP0079 )
   cmake_policy(SET CMP0079 NEW)
 endif()
 
-set (FFLAGS "-fPIC")
-# set (FFLAGS "-Og -g -Wall -Wextra -pedantic -std=f95 -fimplicit=none -fcheck-all -fbacktrace")
+CMAKE_POLICY(SET CMP0054 NEW) #-- fixes IF() with quoted args
+CMAKE_POLICY(SET CMP0057 NEW) #-- enables IF(.. IN_LIST ..)
+CMAKE_POLICY(SET CMP0074 NEW) #-- Removes issue about setting HDF5_ROOT
 
-find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+# set (FFLAGS "-fPIC")
+# set (FFLAGS "-Og -g -Wall -Wextra -pedantic -std=f95 -fimplicit=none -fcheck-all -fbacktrace")
 
 # Fix where you are
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
@@ -29,48 +30,51 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/archive)
 
-message(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_Fortran_MODULE_DIRECTORY}")
+message(STATUS "CMAKE_Fortran_MODULE_DIRECTORY: ${CMAKE_Fortran_MODULE_DIRECTORY}")
 
 # Set binary output
 set (CMAKE_BINARY_DIR ${PROJECT_BINARY_DIR}/bin)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
+message(STATUS "hello $ENV{HOSTNAME}")
+
 # For this make sure that the environment variable HDF5_ROOT is set!
-# find_package(HDF5 REQUIRED)
-# find_package(HDF5 COMPONENTS C Fortran HL)
+if(DEFINED ENV{HDF5_ROOT})
 
-# FetchContent_Declare(
-#         hdf5
-#         GIT_REPOSITORY https://github.com/HDFGroup/hdf5
-#         GIT_TAG        "hdf5-1_12_0"
-# )
-# FetchContent_MakeAvailable(hdf5)
+    set(HDF5_ROOT "$ENV{HDF5_ROOT}")
 
-# FetchContent_GetProperties(hdf5)
-# message(STATUS "hdf5_POPULATED=${hdf5_POPULATED}")
-# if(NOT hdf5_POPULATED)
-# 	FetchContent_Populate(hdf5)
-# 	message(STATUS "HDF5_SOURCE_DIR=${HDF5_SOURCE_DIR}")
-# 	message(STATUS "HDF5_BINARY_DIR=${HDF5_BINARY_DIR}")
-# 	add_subdirectory(${hdf5_SOURCE_DIR} ${hdf5_BINARY_DIR})
+    if((DEFINED ENV{HDF5_LIBRARIES}) AND (DEFINED ENV{HDF5_INCLUDE_DIRS}))
+        set(HDF5_INCLUDE_DIRS "$ENV{HDF5_INCLUDE_DIRS}")
+        set(HDF5_LIBRARIES "$ENV{HDF5_LIBRARIES}")
+
+    # If only one of the HDF5 flags is set, make sure that they are found
+    elseif((DEFINED ENV{HDF5_LIBRARIES}) AND (NOT DEFINED ENV{HDF5_INCLUDE_DIRS}))
+        message(FATAL_ERROR "Forgot to set HDF5_INCLUDE_DIRS?")
+        return()
+    elseif((NOT DEFINED ENV{HDF5_LIBRARIES}) AND (DEFINED ENV{HDF5_INCLUDE_DIRS}))
+        message(FATAL_ERROR "Forgot to set HDF5_LIBRARIES?")
+        return()
+    endif()
+
+endif()
+
+find_package(HDF5 REQUIRED COMPONENTS C Fortran HL)
 
 
-# 	include_directories("${HDF5_SOURCE_DIR}/c++/src")
-# 	SET(HDF5_LIBRARIES "${hdf5_BINARY_DIR}/bin/${CMAKE_STATIC_LIBRARY_PREFIX}hdf5_debug${CMAKE_SHARED_LIBRARY_SUFFIX}")
-# 	message(STATUS "HDF5_LIBRARIES=${HDF5_LIBRARIES}")
-# endif()
+message(STATUS =============== HDF5 setup ===================)
+message(STATUS "HDF5_ROOT = ${HDF5_ROOT}")
+message(STATUS "HDF5_INCLUDE_DIRS = ${HDF5_INCLUDE_DIRS}")
+message(STATUS "HDF5_LIBRARIES = ${HDF5_LIBRARIES}")
+message(STATUS ==============================================)
 
 # Set location of C header files
 set(HEADER_FILES ${PROJECT_SOURCE_DIR}/include/config.h)
 
-# Set include directories
-include_directories(
-    ${HDF5_INCLUDE_DIRS}
-    ${CMAKE_Fortran_MODULE_DIRECTORY}
-)
+# if (HDF5_FOUND)
 
-message(HDF5_INCLUDE_DIRS="${HDF5_INCLUDE_DIRS}")
-message(HDF5_LIBRARIES="${HDF5_LIBRARIES}")
+# Set include directories
+include_directories(${HDF5_INCLUDE_DIRS})
+include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 
 # include(FetchContent) # once in the project to include the module
 
