@@ -14,3 +14,8 @@ target_link_libraries(
 target_link_libraries(
     hdf5_utils
     hdf5_fortran)
+
+
+add_library(kdtree_search
+  ${CMAKE_CURRENT_LIST_DIR}/kdtree_search.F90
+)

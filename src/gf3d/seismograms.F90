@@ -396,7 +396,7 @@ contains
     OUTPUT_SEISMOS_SAC_ALPHANUM, &
     OUTPUT_SEISMOS_SAC_BINARY)
 
-    use setup_source_location, only: setup_point_search_arrays
+    ! use setup_source_location, only: setup_point_search_arrays
     use sac, only: write_output_SAC
     use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN, IMAIN
     use sources, only: read_cmt, t_source
@@ -419,8 +419,8 @@ contains
     ! Read Green Function file
     GF = read_GF(GF_filename)
 
-    ! Setup KDTree
-    call setup_point_search_arrays(GF)
+    ! Setup kdtree
+    call GF%get_kdtree()
 
     ! Read cmt solution
     sources = read_cmt(source_filename)
@@ -429,8 +429,6 @@ contains
     call get_seismograms(GF, sources, seismograms)
 
     do k=1,size(GF%displacement,1)
-
-
 
       do icomp=1,NCHANNELS
         write(IMAIN,*)  "Writing ", trim(GF%networks(k)), ".", trim(GF%stations(k)), ".", trim(channels(icomp))
@@ -479,7 +477,7 @@ contains
     OUTPUT_SEISMOS_SAC_ALPHANUM, &
     OUTPUT_SEISMOS_SAC_BINARY)
 
-    use setup_source_location, only: setup_point_search_arrays
+    ! use setup_source_location, only: setup_point_search_arrays
     use sac, only: write_output_SAC
     use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN, &
                          IMAIN, partialnames, DEBUG
@@ -506,7 +504,7 @@ contains
     GF = read_GF(GF_filename)
 
     ! Setup KDTree
-    call setup_point_search_arrays(GF)
+    call GF%get_kdtree()
 
     ! Read cmt solution
     sources = read_cmt(source_filename)

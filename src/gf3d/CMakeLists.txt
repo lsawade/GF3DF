@@ -6,9 +6,9 @@ add_library(gf3d
   # ${CMAKE_CURRENT_LIST_DIR}/gf3d_write_seismograms.F90
 )
 
-target_link_libraries(
-  gf3d
-  point_location
-  sources
-  # hdf5_fortran
-)
+# target_link_libraries(
+#   gf3d
+#   point_location
+#   sources
+#   # hdf5_fortran
+# )

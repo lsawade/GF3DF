@@ -76,9 +76,6 @@ set(HEADER_FILES ${PROJECT_SOURCE_DIR}/include/config.h)
 include_directories(${HDF5_INCLUDE_DIRS})
 include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 
-
-find_library(hdf5_fortran PATHS "${HDF5_LIBRARIES}" "${HDF5_INCLUDE_DIRS}")
-
 # include(FetchContent) # once in the project to include the module
 
 # FetchContent_Declare(fftpack
