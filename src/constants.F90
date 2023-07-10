@@ -1,6 +1,6 @@
 module constants
 
-  logical :: DEBUG = .true.
+  logical, parameter :: DEBUG = .false.
 
   ! Some constant numbers
   double precision, parameter :: ONE = 1.0
@@ -45,11 +45,11 @@ module constants
   integer, parameter :: IIN = 40,IOUT = 41
 
   ! uncomment this to write messages to a text file
-  ! integer, parameter :: IMAIN = 42
+  integer, parameter :: IMAIN = 42
   character(len=256) :: LOGFILE = 'gf3d_log.txt'
 
   ! uncomment this to write messages to the screen (slows down the code)
-  integer, parameter :: IMAIN = ISTANDARD_OUTPUT
+  ! integer, parameter :: IMAIN = ISTANDARD_OUTPUT
 
   ! I/O unit for sac files
   integer, parameter :: IOUT_SAC = 48

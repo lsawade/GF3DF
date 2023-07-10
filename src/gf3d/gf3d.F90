@@ -1,12 +1,13 @@
 
 module gf3d
 
-  use gf, only: read_gf, print_GF, free_GF
+  use gf, only: read_gf, print_GF, free_GF, t_GF
   use sources, only: read_cmt, print_source, t_source
   use utils, only: get_args, throwerror, nextpower2, init_log, finalize_log
   use stf, only: get_stf
   use sac, only: write_output_SAC
   use interpolation, only: spline1d, interp1d
+  use setup_source_location, only: setup_point_search_arrays
   use fftpack
 
   ! High level functions
@@ -16,10 +17,12 @@ module gf3d
 
   private
   public :: &
-    read_GF, read_cmt, &
-    print_GF, print_source, t_source, &
+    t_GF, read_GF, print_GF, &
+    t_source, read_cmt, print_source, &
+    get_seismograms, &
     write_seismograms, &
     write_seismograms_winsta, &
+    setup_point_search_arrays, &
     get_args, throwerror, nextpower2, &
     get_stf, &
     write_output_SAC, &
@@ -38,7 +41,9 @@ module gf3d
   !   end subroutine interpolate_source
   ! end interface interpolate_source
 
+  ! Get seismograms interface
   interface get_seismograms
+    ! Simple get_seismograms usage
     module subroutine get_seismograms(GF, sources, superseismograms)
       use gf, only: t_GF
       use sources, only: t_source
@@ -46,8 +51,31 @@ module gf3d
       type(t_source), dimension(:), intent(inout) :: sources
       double precision, dimension(:,:,:), allocatable, intent(out) :: superseismograms
     end subroutine
+
+    ! Get sdp as used in GCMT
+
+    module subroutine get_sdp(GF, sources, synt, dp, itypsokern)
+      use gf, only: t_GF
+      use sources, only: t_source
+      use stf, only: get_stf, stf_convolution, correct_hdur
+      use interpolation, only: interpolateMT
+      use source_location, only: locate_sources, rotate_mt
+      use constants, only: IMAIN, DEBUG, &
+                          dmom, dlat, dlon, ddep, dhdur, dcmt, &
+                          partialnames
+      use utils, only: gradient
+
+      ! Inout
+      type(t_GF), intent(in) :: GF
+      type(t_source), dimension(1), intent(inout) :: sources ! Sources are located
+      double precision, dimension(:,:,:), allocatable, intent(out) :: synt
+      double precision, dimension(:,:,:,:), allocatable, intent(out) :: dp
+
+    end subroutine
+
   end interface get_seismograms
 
+  ! Write seismograms interface
   interface write_seismograms
     module subroutine write_seismograms(&
       GF_filename, source_filename, output_dir, &

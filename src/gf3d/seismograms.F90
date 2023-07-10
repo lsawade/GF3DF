@@ -15,6 +15,16 @@ submodule (gf3d) seismograms
   end interface interpolate_source
 
 contains
+  subroutine log_parname(parname)
+    use constants, only: IMAIN
+    character(len=*) :: parname
+
+    write (IMAIN, *) "========================================================"
+    write (IMAIN, *) "========================================================"
+    write (IMAIN, "(1x, 10A, 5x, 16A, 10x, 10A)") "=========="," ", trim(parname), " ", "=========="
+    write (IMAIN, *) "========================================================"
+    write (IMAIN, *) "========================================================"
+  end subroutine
 
   module subroutine get_sdp(GF, sources, synt, dp, itypsokern)
 
@@ -36,7 +46,7 @@ contains
     ! Local
     integer :: i, j, k, iglob, Ndp
     double precision :: t0, tc, hdur_diff
-    double precision, dimension(6) :: tM
+    double precision, dimension(6) :: tM, tM_test
     type(t_source), dimension(6) :: dmom_source
     type(t_source), dimension(1) :: dlat_source_p, dlat_source_m
     type(t_source), dimension(1) :: dlon_source_p, dlon_source_m
@@ -121,19 +131,59 @@ contains
     if (itypsokern > 0) then
 
       do i=1,6
+        call log_parname(trim(partialnames(i)))
+
         ! Copy source
         tM(:) = 0.d0
+        tM_test(:) = 0.d0
         tM(i) = dmom
 
+        if (DEBUG) write(*,*) tM
+
         dmom_source(i) = sources(1)
+        dmom_source(i)%Mrr = 0.0
+        dmom_source(i)%Mtt = 0.0
+        dmom_source(i)%Mpp = 0.0
+        dmom_source(i)%Mrt = 0.0
+        dmom_source(i)%Mrp = 0.0
+        dmom_source(i)%Mtp = 0.0
+
+        if (i==1) dmom_source(i)%Mrr = dmom
+        if (i==2) dmom_source(i)%Mtt = dmom
+        if (i==3) dmom_source(i)%Mpp = dmom
+        if (i==4) dmom_source(i)%Mrt = dmom
+        if (i==5) dmom_source(i)%Mrp = dmom
+        if (i==6) dmom_source(i)%Mtp = dmom
 
         ! set all MT components to 0
         ! Assign moment tensor to array for simpler
         call rotate_mt(&
-          sources(1)%latitude, sources(1)%longitude, &
+          dmom_source(i)%latitude, dmom_source(i)%longitude, &
           tM(1), tM(2), tM(3), tM(4), tM(5), tM(6), &
           dmom_source(i)%Mxx, dmom_source(i)%Myy, dmom_source(i)%Mzz, &
           dmom_source(i)%Mxy, dmom_source(i)%Mxz, dmom_source(i)%Myz)
+        ! call rotate_mt(&
+        !   dmom_source(i)%latitude, dmom_source(i)%longitude, &
+        !   tM(1), tM(2), tM(3), tM(4), tM(5), tM(6), &
+        !   tM_test(1), tM_test(2), tM_test(3), tM_test(4), tM_test(5), tM_test(6))
+
+
+        ! call locate_sources(GF, dmom_source(i:i))
+
+        write(IMAIN, *) &
+          tM_test(1), tM_test(2), tM_test(3), &
+          tM_test(4), tM_test(5), tM_test(6)
+        write(IMAIN, *) &
+          dmom_source(i)%Mxx, dmom_source(i)%Myy, dmom_source(i)%Mzz, &
+          dmom_source(i)%Mxy, dmom_source(i)%Mxz, dmom_source(i)%Myz
+
+        write(IMAIN, *) &
+          tM(1), tM(2), tM(3), &
+          tM(4), tM(5), tM(6)
+        write(IMAIN, *) &
+          dmom_source(i)%Mrr, dmom_source(i)%Mtt, dmom_source(i)%Mpp, &
+          dmom_source(i)%Mrt, dmom_source(i)%Mrp, dmom_source(i)%Mtp
+
 
         ! Get synthetics
         call interpolate_source(GF, dmom_source(i), seismograms)
@@ -154,13 +204,15 @@ contains
 
       ! ==================== Latitude
 
+      call log_parname(trim(partialnames(7)))
+
       ! Latitude perturbation
       dlat_source_p(1) = sources(1)
       dlat_source_m(1) = sources(1)
 
       ! Perturb latitude locations
       dlat_source_p(1)%latitude = dlat_source_p(1)%latitude + dlat
-      dlat_source_m(1)%latitude = dlat_source_p(1)%latitude - dlat
+      dlat_source_m(1)%latitude = dlat_source_m(1)%latitude - dlat
 
       ! Locate new locations
       call locate_sources(GF, dlat_source_p)
@@ -173,15 +225,21 @@ contains
 
       ! We can convolove afterwards since convolution is distributive
       ! Convolve seismogram array with STF
-      convolution(:,:,:) = stf_convolution(&
-        (seismograms-seismograms2)/(2*dlat), stf, &
-        GF%dt, tc - sources(1)%time_shift)
+      seismograms(:,:,:) = stf_convolution(&
+        seismograms, stf, &
+        GF%dt, tc - dlat_source_p(1)%time_shift)
 
-      dp(7,:,:,:) =  convolution(:,:,:)
+      seismograms2(:,:,:) = stf_convolution(&
+        seismograms2, stf, &
+        GF%dt, tc - dlat_source_m(1)%time_shift)
+
+      dp(7,:,:,:) = (seismograms-seismograms2)/(2*dlat)
 
       if (DEBUG) write(IMAIN, *) "Done with ", trim(partialnames(7))
 
       ! ==================== Longitude
+
+      call log_parname(trim(partialnames(8)))
 
       ! Longitude perturbation
       dlon_source_p(:) = sources(:)
@@ -189,7 +247,7 @@ contains
 
       ! Perturb latitude locations
       dlon_source_p(1)%longitude = dlon_source_p(1)%longitude + dlon
-      dlon_source_m(1)%longitude = dlon_source_p(1)%longitude - dlon
+      dlon_source_m(1)%longitude = dlon_source_m(1)%longitude - dlon
 
       ! Locate new locations
       call locate_sources(GF, dlon_source_p)
@@ -199,23 +257,28 @@ contains
       call interpolate_source(GF, dlon_source_p(1), seismograms)
       call interpolate_source(GF, dlon_source_m(1), seismograms2)
 
-      convolution(:,:,:) = stf_convolution(&
-        (seismograms-seismograms2)/(2*dlon), stf, &
-        GF%dt, tc - sources(1)%time_shift)
+      seismograms(:,:,:) = stf_convolution(&
+        seismograms, stf, &
+        GF%dt, tc - dlon_source_p(1)%time_shift)
+      seismograms2(:,:,:) = stf_convolution(&
+        seismograms2, stf, &
+        GF%dt, tc - dlon_source_m(1)%time_shift)
 
-      dp(8,:,:,:) =  convolution(:,:,:)
+      dp(8,:,:,:) = (seismograms-seismograms2)/(2*dlon)
 
       if (DEBUG) write(IMAIN, *) "Done with ", trim(partialnames(8))
 
       ! =================== Depth
+
+      call log_parname(trim(partialnames(9)))
 
       ! Depth perturbation
       ddep_source_p(:) = sources(:)
       ddep_source_m(:) = sources(:)
 
       ! Perturb latitude locations
-      ddep_source_p(1)%longitude = ddep_source_p(1)%longitude + ddep
-      ddep_source_m(1)%longitude = ddep_source_p(1)%longitude - ddep
+      ddep_source_p(1)%depth = ddep_source_p(1)%depth + ddep
+      ddep_source_m(1)%depth = ddep_source_m(1)%depth - ddep
 
       ! Locate new locations
       call locate_sources(GF, ddep_source_p)
@@ -225,15 +288,20 @@ contains
       call interpolate_source(GF, ddep_source_p(1), seismograms)
       call interpolate_source(GF, ddep_source_m(1), seismograms2)
 
-      convolution(:,:,:) = stf_convolution(&
-        (seismograms-seismograms2)/(2*ddep), stf, &
-        GF%dt, tc - sources(1)%time_shift)
+      seismograms(:,:,:) = stf_convolution(&
+        seismograms, stf, &
+        GF%dt, tc - ddep_source_p(1)%time_shift)
+      seismograms2(:,:,:) = stf_convolution(&
+        seismograms2, stf, &
+        GF%dt, tc - ddep_source_m(1)%time_shift)
 
-      dp(9,:,:,:) =  convolution(:,:,:)
+      dp(9,:,:,:) =  (seismograms-seismograms2)/(2*ddep)
 
       if (DEBUG) write(IMAIN, *) "Done with ", trim(partialnames(9))
 
       ! =================== Time
+
+      call log_parname(trim(partialnames(10)))
 
       call gradient(synt, Gf%dt, dp(10,:,:,:))
 
@@ -246,27 +314,32 @@ contains
     !
     if (itypsokern > 2) then
 
+      call log_parname(trim(partialnames(11)))
+
+      ! Recall interpolate
+      call interpolate_source(GF, sources(1), seismograms)
+
       ! Half duration  perturbation
       dhdur_source_p(:) = sources(:)
       dhdur_source_m(:) = sources(:)
       allocate(stf_p(GF%nsteps), stf_m(GF%nsteps))
 
       ! Get STF
-      hdur_diff = correct_hdur(sources(1)%hdur, GF%hdur)
-      call get_stf(t, tc, hdur_diff+dhdur, int(GF%nsteps, kind=4), stf_p)
-      call get_stf(t, tc, hdur_diff-dhdur, int(GF%nsteps, kind=4), stf_m)
+      hdur_diff = correct_hdur(sources(1)%hdur+dhdur, GF%hdur)
+      call get_stf(t, tc, hdur_diff, int(GF%nsteps, kind=4), stf_p)
+      hdur_diff = correct_hdur(sources(1)%hdur-dhdur, GF%hdur)
+      call get_stf(t, tc, hdur_diff, int(GF%nsteps, kind=4), stf_m)
 
       ! compute partial derivatives with respect to half duration
       dp(11,:,:,:) = (&
         stf_convolution(seismograms, stf_p, &
-                        GF%dt, tc - sources(1)%time_shift) - &
+                        GF%dt, tc - dhdur_source_p(1)%time_shift) - &
         stf_convolution(seismograms, stf_m, &
-                        GF%dt, tc - sources(1)%time_shift))/dhdur
+                        GF%dt, tc - dhdur_source_m(1)%time_shift))/(2*dhdur)
 
       if (DEBUG) write(IMAIN, *) "Done with ", trim(partialnames(11))
+
     endif
-
-
 
   end subroutine get_sdp
 
@@ -436,7 +509,8 @@ contains
 
     use setup_source_location, only: setup_point_search_arrays
     use sac, only: write_output_SAC
-    use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN, IMAIN, partialnames
+    use constants, only: NCHANNELS, orientation, channels, MAX_STRING_LEN, &
+                         IMAIN, partialnames, DEBUG
     use sources, only: read_cmt, t_source
     use gf, only: t_GF, read_GF
 
@@ -448,6 +522,7 @@ contains
 
     ! Local
     type(t_GF) :: GF
+    real :: start, finish
     type(t_source), dimension(:), allocatable :: sources
     character(len=MAX_STRING_LEN) :: sisname
     character(len=MAX_STRING_LEN) :: model = "GLAD-M25"
@@ -478,6 +553,7 @@ contains
       write(*,*) "Number of partials not implemented."
     endif
 
+    if (DEBUG) call cpu_time(start)
 
     do k=1,size(GF%displacement,1)
 
@@ -560,6 +636,10 @@ contains
 
       enddo
     enddo
+
+    if (DEBUG) call cpu_time(finish)
+    if (DEBUG) print '("    Writing seismograms took ",f6.3," seconds.")', finish-start
+
 
   end subroutine write_seismograms_sdp
 

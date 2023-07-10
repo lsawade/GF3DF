@@ -61,7 +61,7 @@ cmake --build build && ./bin/gf3d single_element.h5
 
 ## Known Issues
 
-- **CMake does not find HDF5 correctly**. On my Mac, I have
+- **CMake does sometimes not find HDF5 correctly**. On my Mac, I have
   had the issue that `find_package` in `CMake` failed or messed up the
   `HDF5_INCLUDE_DIRS` path. Then it is really the easiest to some variables via
   command line. First the normal paths

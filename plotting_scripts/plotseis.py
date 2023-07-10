@@ -18,8 +18,7 @@ cmt = CMTSOLUTION.read('CMTSOLUTION')
 
 # %% Initialize the Green Function Manager
 
-# gfm = GFManager('single_element_not_fortran.h5')
-gfm = GFManager('sample.h5')
+gfm = GFManager('single_element_not_fortran.h5')
 gfm.load()
 
 # %% Get Python seismograms
@@ -33,7 +32,7 @@ pbfopy = st.select(station='BFO')
 # pbfopy = process_stream(bfopy, cmt=cmt)
 
 # %% Read seismograms from fortran
-pbfof = read('OUTPUT/II.BFO.*.sac')
+pbfof = read('OUTPUT/II.BFO.*.sem.sac')
 
 # factor = 1
 # for tr in bfof:

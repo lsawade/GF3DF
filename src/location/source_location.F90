@@ -37,21 +37,29 @@ module source_location
 contains
 
   subroutine rotate_mt(&
-    lat, lon, &
+    latitude, longitude, &
     Mrr, Mtt, Mpp, Mrt, Mrp, Mtp, &
     Mxx, Myy, Mzz, Mxy, Mxz, Myz)
 
     use rthetaphi_xyz, only: lat_2_geocentric_colat_dble, xyz_2_rthetaphi_dble, &
                              geocentric_2_geographic_dble
+    use constants, only: DEGREES_TO_RADIANS
 
-    double precision, intent(inout) :: lat
-    double precision, intent(inout) :: lon
+    implicit none
+
+    double precision, intent(in) :: latitude
+    double precision, intent(in) :: longitude
     double precision, intent(in) :: Mrr, Mtt, Mpp, Mrt, Mrp, Mtp
     double precision, intent(out) :: Mxx, Myy, Mzz, Mxy, Mxz, Myz
 
     ! Local
     double precision :: theta, phi
+    double precision :: lat
+    double precision :: lon
     double precision :: sint, cost, sinp, cosp
+
+    lat = latitude
+    lon = longitude
 
     ! limits longitude to [0.0,360.0]
     if (lon < 0.d0 ) lon = lon + 360.d0

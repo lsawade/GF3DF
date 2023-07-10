@@ -22,24 +22,22 @@ contains
     Nx = size(f)
 
     ! allocate derivative array
-    do i=1, Nx
-      if (i==1) then
-        f1(i) = (f(i+1)-f(i))/dx
-      else if (i==Nx) then
-        f1(i) = (f(Nx)-f(i-1))/dx
-      else
-        f1(i) = (f(i+1) -f(i-1))/(2*dx)
-      end if
-
-    end do
+    f1(1) = (f(2)-f(1))/dx
+    f1(Nx) = (f(Nx)-f(Nx-1))/dx
+    f1(2:Nx-1) = (f(3:Nx) -f(1:Nx-3))/(2*dx)
 
   end subroutine gradient_dp
 
   subroutine gradient_3d_array_dim3(f, dx, f1)
+    use constants, only: IMAIN, DEBUG
+    implicit none
+    real :: start, finish
     double precision, intent(in) :: f(:,:,:)
     double precision, intent(in) :: dx
     double precision, intent(out) :: f1(:,:,:)
     integer :: i,j,k, Ndim1, Ndim2, Nx
+
+    if (DEBUG) call cpu_time(start)
 
     ! Number of samples
     Ndim1 = size(f, dim=1)
@@ -47,13 +45,13 @@ contains
     Nx = size(f, dim=3)
 
     ! allocate derivative array
-    do k=1,Ndim1
-      do j=1,Ndim2
-        do i=1, Nx
-          call gradient_dp(f(k,j,:), dx, f1(k,j,:))
-        end do
-      end do
-    end do
+    ! allocate derivative array
+    f1(:,:,1) = (f(:,:,2)-f(:,:,1))/dx
+    f1(:,:,Nx) = (f(:,:,Nx)-f(:,:,Nx-1))/dx
+    f1(:,:,2:Nx-1) = (f(:,:,3:Nx) -f(:,:,1:Nx-3))/(2*dx)
+
+    if (DEBUG) call cpu_time(finish)
+    if (DEBUG) print '("    differentiating took ",f6.3," seconds.")', finish-start
 
   end subroutine gradient_3d_array_dim3
 

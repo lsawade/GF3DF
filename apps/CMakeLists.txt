@@ -20,6 +20,12 @@ target_link_libraries(
     gf3d
 )
 
+add_executable(gf3d-get-sdp-demo get_sdp_demo.F90)
+target_link_libraries(
+    gf3d-get-sdp-demo
+    gf3d
+)
+
 add_executable(gf3d-get-sac-winsta get_sac_seismograms_windows.F90)
 target_link_libraries(
     gf3d-get-sac-winsta
