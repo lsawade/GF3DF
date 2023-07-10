@@ -19,6 +19,8 @@ cmt = CMTSOLUTION.read('CMTSOLUTION')
 # %% Initialize the Green Function Manager
 
 gfm = GFManager('single_element_not_fortran.h5')
+# gfm = GFManager('/scratch/gpfs/lsawade/large_subset.h5')
+
 gfm.load()
 
 # %% Get Python seismograms

@@ -333,12 +333,14 @@ contains
 
     endif
 
+    ! Topography
     if (GF%topography == 1) then
       call get_dset_dims(file_id, name_bathy, dims_bathy, maxdims_bathy, got, errorflag)
       call throwerror(errorflag, "Error getting ellipticity dims")
 
     endif
 
+    ! Topography
     call get_dset_dims(file_id, name_displacement, &
           dims_displacement, maxdims_displacement, got, errorflag)
     call throwerror(errorflag, "Error getting displacement dims")
@@ -348,13 +350,25 @@ contains
           dims_xyz, maxdims_xyz, got, errorflag)
     call throwerror(errorflag, "Error getting xyz dims")
 
+    call get_dset_dims(file_id, name_adjacency, &
+          dims_adjacency, maxdims_adjacency, got, errorflag)
+    call throwerror(errorflag, "Error getting adjacency dims")
+
+    call get_dset_dims(file_id, name_xadj, &
+          dims_xadj, maxdims_xadj, got, errorflag)
+    call throwerror(errorflag, "Error getting xadj dims")
+
 
     ! ------ Allocate arrays ------------------------
 
 
     ! GLL interpolation values
-    allocate(GF%xigll(GF%ngllx), GF%yigll(GF%nglly), GF%zigll(GF%ngllz))
-    allocate(GF%wxgll(GF%ngllx), GF%wygll(GF%nglly), GF%wzgll(GF%ngllz))
+    allocate(GF%xigll(GF%ngllx), GF%yigll(GF%nglly), GF%zigll(GF%ngllz), stat=errorflag)
+    call throwerror(errorflag, "Error allocating interpolation values")
+
+    ! GLL interpolation values
+    allocate(GF%wxgll(GF%ngllx), GF%wygll(GF%nglly), GF%wzgll(GF%ngllz), stat=errorflag)
+    call throwerror(errorflag, "Error allocating interpolation weights")
 
     ! GLL points and weights
     call zwgljd(GF%xigll(:),GF%wxgll(:),GF%ngllx,GAUSSALPHA,GAUSSBETA)
@@ -362,31 +376,54 @@ contains
     call zwgljd(GF%zigll(:),GF%wzgll(:),GF%ngllz,GAUSSALPHA,GAUSSBETA)
 
     if (GF%do_adjacency_search == 1) then
-      allocate(GF%adjacency(dims_adjacency(1)))
-      allocate(GF%xadj(dims_xadj(1)))
+      allocate(GF%adjacency(dims_adjacency(1)), stat=errorflag)
+      call throwerror(errorflag, "Error allocating adjacency vector")
+      allocate(GF%xadj(dims_xadj(1)), stat=errorflag)
+      call throwerror(errorflag, "Error allocating adjacency offsets")
+
+      write(*,*) "dims adjacency: ", dims_adjacency(1)
+      write(*,*) "dims xadj:      ", dims_xadj(1)
     endif
 
     if (GF%ellipticity == 1) then
-      allocate(GF%rspl(dims_ellipticity(1)))
-      allocate(GF%ellipticity_spline(dims_ellipticity(1)))
-      allocate(GF%ellipticity_spline2(dims_ellipticity(1)))
+      ! Spline radii
+      allocate(GF%rspl(dims_ellipticity(1)), stat=errorflag)
+      call throwerror(errorflag, "Error allocating ell. spline radii")
+
+      ! Spline 1
+      allocate(GF%ellipticity_spline(dims_ellipticity(1)), stat=errorflag)
+      call throwerror(errorflag, "Error allocating ell. spline 1")
+
+      ! Spline 2
+      allocate(GF%ellipticity_spline2(dims_ellipticity(1)), stat=errorflag)
+      call throwerror(errorflag, "Error allocating ell. spline 2")
     endif
 
     if (GF%topography == 1) then
-      allocate(GF%bathy(GF%nx_bathy, GF%ny_bathy))
+      ! Topography
+      allocate(GF%bathy(GF%nx_bathy, GF%ny_bathy), stat=errorflag)
+      call throwerror(errorflag, "Error allocating topography")
     endif
 
-    allocate(GF%ibool(dims_ibool(1), dims_ibool(2), dims_ibool(3), dims_ibool(4)))
+    allocate(GF%ibool(dims_ibool(1), dims_ibool(2), dims_ibool(3), dims_ibool(4)), &
+      stat=errorflag)
+    call throwerror(errorflag, "Error allocating ibool")
     allocate(GF%displacement(dims_displacement(1), &
       dims_displacement(2), &
       dims_displacement(3), &
       dims_displacement(4), &
-      dims_displacement(5)))
+      dims_displacement(5)), &
+      stat=errorflag)
+    call throwerror(errorflag, "Error allocating displacement")
 
-    allocate(GF%xyz(dims_xyz(1), dims_xyz(2)))
+    allocate(GF%xyz(dims_xyz(1), dims_xyz(2)), stat=errorflag)
+    call throwerror(errorflag, "Error allocating xyz coordinates")
+
+    ! All is allocated let's read.
 
     call read_from_hdf5(GF%ibool, name_ibool, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading ibool")
+    write(*,*) "ibool loaded."
 
     ! Add 1 to the indexing array
     GF%ibool(:,:,:,:) = GF%ibool(:,:,:,:) + 1
@@ -399,14 +436,18 @@ contains
 
     call read_from_hdf5(GF%xyz, name_xyz, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading xyz")
+    write(*,*) "XYZ loaded."
 
     if (GF%do_adjacency_search == 1) then
 
+
       call read_from_hdf5(GF%adjacency, name_adjacency, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading  adjacency")
+      write(*,*) "adjacency loaded."
 
       call read_from_hdf5(GF%xadj, name_xadj, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading xadj")
+      write(*,*) "xadj loaded."
 
     endif
 
@@ -414,17 +455,21 @@ contains
     if (GF%ellipticity == 1) then
       call read_from_hdf5(GF%rspl, name_rspl, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading ellipticity spline")
+      write(*,*) "rspl loaded."
 
       call read_from_hdf5(GF%ellipticity_spline, name_ellipticity_spline, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading ellipticity spline")
+      write(*,*) "spline1 loaded."
 
       call read_from_hdf5(GF%ellipticity_spline2, name_ellipticity_spline2, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading ellipticity spline 2")
+      write(*,*) "spline2 loaded."
     endif
 
     if (GF%topography == 1) then
       call read_from_hdf5(GF%bathy, name_bathy, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading bathymetry")
+      write(*,*) "topobathy loaded."
     endif
 
     GF%nspec = dims_ibool(4)
