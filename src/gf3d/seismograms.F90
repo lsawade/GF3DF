@@ -162,13 +162,6 @@ contains
           tM(1), tM(2), tM(3), tM(4), tM(5), tM(6), &
           dmom_source(i)%Mxx, dmom_source(i)%Myy, dmom_source(i)%Mzz, &
           dmom_source(i)%Mxy, dmom_source(i)%Mxz, dmom_source(i)%Myz)
-        ! call rotate_mt(&
-        !   dmom_source(i)%latitude, dmom_source(i)%longitude, &
-        !   tM(1), tM(2), tM(3), tM(4), tM(5), tM(6), &
-        !   tM_test(1), tM_test(2), tM_test(3), tM_test(4), tM_test(5), tM_test(6))
-
-
-        ! call locate_sources(GF, dmom_source(i:i))
 
         write(IMAIN, *) &
           tM_test(1), tM_test(2), tM_test(3), &
@@ -183,7 +176,6 @@ contains
         write(IMAIN, *) &
           dmom_source(i)%Mrr, dmom_source(i)%Mtt, dmom_source(i)%Mpp, &
           dmom_source(i)%Mrt, dmom_source(i)%Mrp, dmom_source(i)%Mtp
-
 
         ! Get synthetics
         call interpolate_source(GF, dmom_source(i), seismograms)
@@ -225,15 +217,9 @@ contains
 
       ! We can convolove afterwards since convolution is distributive
       ! Convolve seismogram array with STF
-      seismograms(:,:,:) = stf_convolution(&
-        seismograms, stf, &
+      dp(7,:,:,:) = stf_convolution( &
+        (seismograms(:,:,:)-seismograms2(:,:,:))/(2*dlat), stf, &
         GF%dt, tc - dlat_source_p(1)%time_shift)
-
-      seismograms2(:,:,:) = stf_convolution(&
-        seismograms2, stf, &
-        GF%dt, tc - dlat_source_m(1)%time_shift)
-
-      dp(7,:,:,:) = (seismograms-seismograms2)/(2*dlat)
 
       if (DEBUG) write(IMAIN, *) "Done with ", trim(partialnames(7))
 
@@ -257,14 +243,9 @@ contains
       call interpolate_source(GF, dlon_source_p(1), seismograms)
       call interpolate_source(GF, dlon_source_m(1), seismograms2)
 
-      seismograms(:,:,:) = stf_convolution(&
-        seismograms, stf, &
+      dp(8,:,:,:) = stf_convolution( &
+        (seismograms(:,:,:)-seismograms2(:,:,:))/(2*dlon), stf, &
         GF%dt, tc - dlon_source_p(1)%time_shift)
-      seismograms2(:,:,:) = stf_convolution(&
-        seismograms2, stf, &
-        GF%dt, tc - dlon_source_m(1)%time_shift)
-
-      dp(8,:,:,:) = (seismograms-seismograms2)/(2*dlon)
 
       if (DEBUG) write(IMAIN, *) "Done with ", trim(partialnames(8))
 
@@ -288,14 +269,9 @@ contains
       call interpolate_source(GF, ddep_source_p(1), seismograms)
       call interpolate_source(GF, ddep_source_m(1), seismograms2)
 
-      seismograms(:,:,:) = stf_convolution(&
-        seismograms, stf, &
+      dp(9,:,:,:) = stf_convolution( &
+        (seismograms(:,:,:)-seismograms2(:,:,:))/(2*ddep), stf, &
         GF%dt, tc - ddep_source_p(1)%time_shift)
-      seismograms2(:,:,:) = stf_convolution(&
-        seismograms2, stf, &
-        GF%dt, tc - ddep_source_m(1)%time_shift)
-
-      dp(9,:,:,:) =  (seismograms-seismograms2)/(2*ddep)
 
       if (DEBUG) write(IMAIN, *) "Done with ", trim(partialnames(9))
 

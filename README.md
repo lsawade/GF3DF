@@ -1,4 +1,4 @@
-# Fortran bindings to read GF3D produced Subset files
+# Fortran bindings to read GF3D produced subset files
 
 Organization of the code could be better. I'm not quite sure whether the going
 down the `submodule` route is the right thing. I have to write an extra
