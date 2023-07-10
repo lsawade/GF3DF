@@ -1,3 +1,17 @@
+#!/bin/env python3
+
+""" This script tests the output of the write_seismograms_sdp functions.
+
+Loads
+
+- CMTSOLUTION
+- single_element.h5 -> for extraction using Python API
+- OUTPUT_SDP/II.BFO.*.{parameters}.sac        -> Load SAC traces from
+
+from current directory and
+
+"""
+
 # %%
 import os
 import sys
@@ -11,9 +25,6 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 # %% Get CMT source
-# Actual values for half duration and timeshift
-# time shift:     49.9800
-# half duration:  33.4000
 
 cmt = CMTSOLUTION.read('CMTSOLUTION')
 
@@ -31,14 +42,10 @@ pdppy = dict()
 for key, _st in dp.items():
     pdppy[key] = _st.select(station='BFO')
 
-# bfopy.differentiate()
-
-# pbfopy = process_stream(bfopy, cmt=cmt)
-
 # %% Read seismograms from fortran
+
 pypars = ["Mrr", "Mtt", "Mpp", "Mrt", "Mrp",
           "Mtp", "latitude", "longitude", "depth", "time_shift", "hdur"]
-
 
 pfp = read('OUTPUT_SDP/II.BFO.MX?.sem.sac')
 pdfp = dict()
