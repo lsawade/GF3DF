@@ -15,6 +15,11 @@ cmake -S . -B build
 cmake --build build
 ```
 
+## Usage in your package
+
+An example of an external program that uses GF3D is given in
+`./external_program`.
+
 ## Dependencies
 
 - **Fortran compiler** -- Tested only gfortran so far; most recently GNU Fortran

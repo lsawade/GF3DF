@@ -12,6 +12,12 @@ project (GF3D
 
 enable_language (C Fortran)
 
+
+# CRUCIAL for macos! Do not remove, it messes with the way
+# you install packages on any other platform.
+set(CMAKE_MACOSX_RPATH OFF)
+
+
 if(POLICY CMP0079 )
   cmake_policy(SET CMP0079 NEW)
 endif()

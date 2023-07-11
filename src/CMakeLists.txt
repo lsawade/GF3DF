@@ -24,6 +24,15 @@ target_link_libraries(
     kdtree_search
     heap_sort
 )
+target_link_libraries(
+    stf
+    fftpack
+    error_functions
+)
+target_link_libraries(
+    hdf5_utils
+    hdf5_fortran)
+
 
 # The code for locating a source in the mesh is here
 add_subdirectory(mesh)
@@ -33,7 +42,9 @@ add_subdirectory(sources)
 target_link_libraries(
     sources
     calendar
+    utils
 )
+
 
 add_subdirectory(gf)
 target_link_libraries(
