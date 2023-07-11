@@ -76,6 +76,17 @@ set(HEADER_FILES ${PROJECT_SOURCE_DIR}/include/config.h)
 include_directories(${HDF5_INCLUDE_DIRS})
 include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 
+# Fix for missing library link
+list(GET HDF5_INCLUDE_DIRS 0 HDF5_ROOT)
+get_filename_component(HDF5_ROOT "${HDF5_ROOT}" DIRECTORY)
+set(HDF5_LIBDIR "${HDF5_ROOT}/lib")
+
+message(STATUS "===========================")
+message(STATUS "HDF5_LIBDIR is now: ${HDF5_LIBDIR}")
+message(STATUS "===========================")
+
+link_directories(${HDF5_LIBDIR})
+
 # include(FetchContent) # once in the project to include the module
 
 # FetchContent_Declare(fftpack

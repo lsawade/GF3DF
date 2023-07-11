@@ -345,7 +345,6 @@ contains
           dims_displacement, maxdims_displacement, got, errorflag)
     call throwerror(errorflag, "Error getting displacement dims")
 
-
     call get_dset_dims(file_id, name_xyz, &
           dims_xyz, maxdims_xyz, got, errorflag)
     call throwerror(errorflag, "Error getting xyz dims")
@@ -360,8 +359,6 @@ contains
 
 
     ! ------ Allocate arrays ------------------------
-
-
     ! GLL interpolation values
     allocate(GF%xigll(GF%ngllx), GF%yigll(GF%nglly), GF%zigll(GF%ngllz), stat=errorflag)
     call throwerror(errorflag, "Error allocating interpolation values")
@@ -381,8 +378,8 @@ contains
       allocate(GF%xadj(dims_xadj(1)), stat=errorflag)
       call throwerror(errorflag, "Error allocating adjacency offsets")
 
-      write(*,*) "dims adjacency: ", dims_adjacency(1)
-      write(*,*) "dims xadj:      ", dims_xadj(1)
+      if (DEBUG) write(IMAIN,*) "dims adjacency: ", dims_adjacency(1)
+      if (DEBUG) write(IMAIN,*) "dims xadj:      ", dims_xadj(1)
     endif
 
     if (GF%ellipticity == 1) then
@@ -423,7 +420,7 @@ contains
 
     call read_from_hdf5(GF%ibool, name_ibool, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading ibool")
-    write(*,*) "ibool loaded."
+    if (DEBUG) write(IMAIN,*) "ibool loaded."
 
     ! Add 1 to the indexing array
     GF%ibool(:,:,:,:) = GF%ibool(:,:,:,:) + 1
@@ -436,18 +433,17 @@ contains
 
     call read_from_hdf5(GF%xyz, name_xyz, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading xyz")
-    write(*,*) "XYZ loaded."
+    if (DEBUG) write(IMAIN,*) "XYZ loaded."
 
     if (GF%do_adjacency_search == 1) then
 
-
       call read_from_hdf5(GF%adjacency, name_adjacency, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading  adjacency")
-      write(*,*) "adjacency loaded."
+      write(IMAIN,*) "adjacency loaded."
 
       call read_from_hdf5(GF%xadj, name_xadj, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading xadj")
-      write(*,*) "xadj loaded."
+      write(IMAIN,*) "xadj loaded."
 
     endif
 
@@ -455,21 +451,21 @@ contains
     if (GF%ellipticity == 1) then
       call read_from_hdf5(GF%rspl, name_rspl, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading ellipticity spline")
-      write(*,*) "rspl loaded."
+      write(IMAIN,*) "rspl loaded."
 
       call read_from_hdf5(GF%ellipticity_spline, name_ellipticity_spline, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading ellipticity spline")
-      write(*,*) "spline1 loaded."
+      write(IMAIN,*) "spline1 loaded."
 
       call read_from_hdf5(GF%ellipticity_spline2, name_ellipticity_spline2, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading ellipticity spline 2")
-      write(*,*) "spline2 loaded."
+      write(IMAIN,*) "spline2 loaded."
     endif
 
     if (GF%topography == 1) then
       call read_from_hdf5(GF%bathy, name_bathy, file_id, got, errorflag)
       call throwerror(errorflag, "Error Reading bathymetry")
-      write(*,*) "topobathy loaded."
+      write(IMAIN,*) "topobathy loaded."
     endif
 
     GF%nspec = dims_ibool(4)

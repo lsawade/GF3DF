@@ -6,7 +6,7 @@ target_link_libraries(
     sources
     utils
     calendar
-    hdf5_fortran
+    ${HDF5_LIBRARIES}
 )
 
 add_executable(gf3d-get-sac get_sac_seismograms.F90)
