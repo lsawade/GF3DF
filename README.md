@@ -17,8 +17,20 @@ cmake --build build
 
 ## Usage in your package
 
-An example of an external program that uses GF3D is given in
-`./external_program`.
+An example of an external program that uses GF3D to extract seismograms from the
+database is given in `./external_program/test_gf3d.F90`. Make sure you have
+compiled `gf3d` before jumping to this. To compile the external usage software
+```bash
+cd path/to/gf3df/external_program
+gfortran test_gf3d.F90 -o test-get-sdp -L../build/lib -I../build/include -lgf3d
+```
+and to use it simply run
+```bash
+path/to/gf3df/external_program/test-get-sdp <fortran_subset.h5> <itypsokern>
+```
+This extracts seismograms for the same event and corresponding kernel 10 times
+and computes the average extraction time.
+
 
 ## Dependencies
 

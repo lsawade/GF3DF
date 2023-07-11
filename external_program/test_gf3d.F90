@@ -1,10 +1,19 @@
 program get_sdp
 !
-!  External software:
+!  External software to extract traces from the database. Make sure you have
+!  compiled `gf3d` before jumping to this.
 !
 ! compile like so:
 !
-!   gfortran test_gf3d.F90 -o test_get_sdp -L../build/lib -I../build/include -lgf3d
+!   cd path/to/gf3df/external_program
+!   gfortran test_gf3d.F90 -o test-get-sdp -L../build/lib -I../build/include -lgf3d
+!
+! usage:
+!
+!   path/to/gf3df/external_program/test-get-sdp <fortran_subset.h5> <itypsokern>
+!
+!
+
 
   use gf3d, only: get_seismograms, get_args, throwerror, init_log, finalize_log, &
                   t_source, t_GF, read_GF, setup_point_search_arrays
