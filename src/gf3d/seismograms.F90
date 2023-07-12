@@ -529,7 +529,7 @@ contains
 
       do icomp=1,NCHANNELS
         write(IMAIN,*)  "Writing ", trim(GF%networks(k)), ".", trim(GF%stations(k)), ".", trim(channels(icomp))
-        write(sisname,"('/',a,'.',a,'.',a3,'.sem')") &
+        write(sisname,"('/',a,'.',a,'.S3','.',a3)") &
         trim(GF%networks(k)), trim(GF%stations(k)), trim(channels(icomp))
 
         call write_output_SAC(&
@@ -568,7 +568,7 @@ contains
 
             write(IMAIN,*)  "Writing ", trim(GF%networks(k)), ".", trim(GF%stations(k)), ".", &
                                         trim(channels(icomp)), ".", trim(partialnames(ip))
-            write(sisname,"('/',a,'.',a,'.',a3,'.',a,'.sem')") &
+            write(sisname,"('/',a,'.',a,'.S3','.',a3,'.',a)") &
             trim(GF%networks(k)), trim(GF%stations(k)), trim(channels(icomp)), trim(partialnames(ip))
 
           call write_output_SAC(&
