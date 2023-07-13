@@ -1,5 +1,5 @@
 
-add_executable(gf3d-print-cmt print_cmt.F90)
+add_executable(gf3df-print-cmt print_cmt.F90)
 target_link_libraries(
     gf3d-print-cmt
     gf3d
@@ -9,32 +9,32 @@ target_link_libraries(
     ${HDF5_LIBRARIES}
 )
 
-add_executable(gf3d-get-sac get_sac_seismograms.F90)
+add_executable(gf3df-get-sac get_sac_seismograms.F90)
 target_link_libraries(
     gf3d-get-sac
     gf3d
 )
 
-add_executable(gf3d-get-sac-sdp get_sac_seismograms_sdp.F90)
+add_executable(gf3df-get-sac-sdp get_sac_seismograms_sdp.F90)
 target_link_libraries(
-    gf3d-get-sac-sdp
+    gf3df-get-sac-sdp
     gf3d
 )
 
-add_executable(gf3d-get-sdp-demo get_sdp_demo.F90)
+add_executable(gf3df-get-sdp-demo get_sdp_demo.F90)
 target_link_libraries(
     gf3d-get-sdp-demo
     gf3d
 )
 
-add_executable(gf3d-get-sac-winsta get_sac_seismograms_windows.F90)
+add_executable(gf3df-get-sac-winsta get_sac_seismograms_windows.F90)
 target_link_libraries(
     gf3d-get-sac-winsta
     gf3d
 )
 
 
-add_executable(gf3d-write-stf write_source_time_functions.F90)
+add_executable(gf3df-write-stf write_source_time_functions.F90)
 target_link_libraries(
     gf3d-write-stf
     gf3d
