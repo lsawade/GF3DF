@@ -34,14 +34,14 @@ pbfopy = st.select(station='BFO')
 # pbfopy = process_stream(bfopy, cmt=cmt)
 
 # %% Read seismograms from fortran
-pbfof = read('OUTPUT/II.BFO.*.sem.sac')
+pbfof = read('OUTPUT/II.BFO.S3.*.sac')
 
 # factor = 1
 # for tr in bfof:
 
 #     tr.data *= factor
 
-if all([os.path.exists(f'OUTPUT_WIN/II.BFO.MX{C}.sem.sac') for C in ['N', 'E', 'Z']]):
+if all([os.path.exists(f'OUTPUT_WIN/II.BFO.S3.MX{C}.sac') for C in ['N', 'E', 'Z']]):
     pbfof_win = read('OUTPUT_WIN/II.BFO.*.sac')
     # pbfof_win = process_stream(bfof_win, cmt=cmt)
 else:
@@ -57,6 +57,7 @@ plt.close('all')
 
 
 # %%
+
 stf = read('OUTPUT/STF.ERF.TIM.sem.sac')
 plt.figure()
 plt.close('all')

@@ -47,13 +47,13 @@ for key, _st in dp.items():
 pypars = ["Mrr", "Mtt", "Mpp", "Mrt", "Mrp",
           "Mtp", "latitude", "longitude", "depth", "time_shift", "hdur"]
 
-pfp = read('OUTPUT_SDP/II.BFO.MX?.sem.sac')
+pfp = read('OUTPUT_SDP/II.BFO.S3.MX?.sac')
 pdfp = dict()
 
 for _i, par in enumerate(
     ["mrr", "mtt", "mpp", "mrt", "mrp", "mtp",
      "lat", "lon", "dep", "cmt", "hdr"]):
-    pdfof = read(f'OUTPUT_SDP/II.BFO.*.{par}.sem.sac')
+    pdfof = read(f'OUTPUT_SDP/II.BFO.S3.*.{par}.sac')
     pdfp[pypars[_i]] = pdfof.select(station='BFO')
 
 starttime = pfp[0].stats.starttime + 200

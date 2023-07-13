@@ -1,3 +1,7 @@
 build
 **/_build/
 .DS_Store
+OUTPUT*
+old_outputs/
+**/gf3d_log.txt
+external_program/test-get-sdp
