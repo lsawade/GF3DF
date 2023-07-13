@@ -103,7 +103,7 @@ cktrace"
 rm -rf build && \
     cmake -S . -B build && \
     cmake --build build && \
-    ./build/bin/gf3d-get-sdp-demo single_element.h5 3
+    ./build/bin/gf3df-get-sdp-demo single_element.h5 3
 
 ```
 
