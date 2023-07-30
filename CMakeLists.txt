@@ -64,6 +64,25 @@ if(DEFINED ENV{HDF5_ROOT})
 
 endif()
 
+if(NOT (DEFINED ENV{CFLAGS}))
+    set(CFLAGS "-Og -g -Wall -Wextra -pedantic -std=c99 -fPIC")
+else()
+    set(CFLAGS "$ENV{CFLAGS}")
+endif()
+
+if(NOT (DEFINED ENV{FFLAGS}))
+    set(FFLAGS "-Og -g -Wall -Wextra -pedantic -std=f95 -fimplicit=none -fcheck=all -fbacktrace -fPIC")
+else()
+    set(FFLAGS "$ENV{FFLAGS}")
+endif()
+
+message(STATUS =============== FLAGS ===================)
+message(STATUS "${CFLAGS}")
+message(STATUS "${FFLAGS}")
+message(STATUS ==============================================)
+message(STATUS " ")
+
+
 find_package(HDF5 REQUIRED COMPONENTS C Fortran HL)
 
 
@@ -92,14 +111,6 @@ message(STATUS "HDF5_LIBDIR is now: ${HDF5_LIBDIR}")
 message(STATUS "===========================")
 
 link_directories(${HDF5_LIBDIR})
-
-# include(FetchContent) # once in the project to include the module
-
-# FetchContent_Declare(fftpack
-#                      GIT_REPOSITORY https://github.com/fortran-lang/fftpack
-#                      GIT_TAG        113982e)
-# FetchContent_MakeAvailable(fftpack)
-
 
 # The compiled library code is here
 add_subdirectory(src)
