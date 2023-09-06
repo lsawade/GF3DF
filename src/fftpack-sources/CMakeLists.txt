@@ -26,14 +26,6 @@ set(FFTPACK_SOURCES
     ${dir}/dzffti.f90
     ${dir}/ezfft1.f90
     ${dir}/fftpack.f90
-    ${dir}/fftpack_dct.f90
-    ${dir}/fftpack_fft.f90
-    ${dir}/fftpack_fftshift.f90
-    ${dir}/fftpack_ifft.f90
-    ${dir}/fftpack_ifftshift.f90
-    ${dir}/fftpack_irfft.f90
-    ${dir}/fftpack_rfft.f90
-    ${dir}/fftpack_utils.f90
     ${dir}/passb.f90
     ${dir}/passb2.f90
     ${dir}/passb3.f90
