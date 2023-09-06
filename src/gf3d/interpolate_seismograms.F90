@@ -1,10 +1,15 @@
-submodule (gf3d:seismograms) source_interpolation_fast
+module interpolate_seismograms
+
+  use utils, only: throwerror
 
   implicit none
 
+  private
+  public :: interpolate_source, interpolate_source_slow
+
 contains
 
-  module subroutine interpolate_source_slow(GF, source, seismograms)
+  subroutine interpolate_source_slow(GF, source, seismograms)
 
     use gf, only: t_GF
     use sources, only: t_source
@@ -55,7 +60,7 @@ contains
   end subroutine interpolate_source_slow
 
 
-  module subroutine interpolate_source(GF, source, seismograms)
+  subroutine interpolate_source(GF, source, seismograms)
 
     use gf, only: t_GF
     use sources, only: t_source
@@ -132,4 +137,4 @@ contains
 
   end subroutine interpolate_source
 
-end submodule
+end module

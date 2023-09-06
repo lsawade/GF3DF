@@ -1,20 +1,25 @@
-submodule (gf3d) seismograms
+module seismograms
 
   implicit none
 
+  private
+  public :: get_seismograms, write_seismograms
 
-  interface interpolate_source
-    module subroutine interpolate_source(GF, source, seismograms)
-      use gf, only: t_GF
-      use sources, only: t_source
-      use interpolation, only: interpolateMT
-      type(t_GF), intent(in) :: GF
-      type(t_source), intent(in) :: source
-      double precision, dimension(:,:,:) :: seismograms
-    end subroutine interpolate_source
-  end interface interpolate_source
+
+
+  ! Get seismograms interface
+  interface get_seismograms
+    module procedure get_seismograms_single, get_sdp
+  end interface get_seismograms
+
+  ! Write seismograms
+  interface write_seismograms
+      module procedure write_seismograms, write_seismograms_sdp
+  end interface write_seismograms
+
 
 contains
+
   subroutine log_parname(parname)
     use constants, only: IMAIN
     character(len=*) :: parname
@@ -26,11 +31,12 @@ contains
     write (IMAIN, *) "========================================================"
   end subroutine
 
-  module subroutine get_sdp(GF, sources, synt, dp, itypsokern)
+  subroutine get_sdp(GF, sources, synt, dp, itypsokern)
 
     use gf, only: t_GF
     use sources, only: t_source
     use stf, only: get_stf, stf_convolution, correct_hdur
+    use interpolate_seismograms, only: interpolate_source
     use interpolation, only: interpolateMT
     use source_location, only: locate_sources, rotate_mt
     use constants, only: IMAIN, DEBUG, &
@@ -316,12 +322,13 @@ contains
   end subroutine get_sdp
 
 
-  module subroutine get_seismograms(GF, sources, superseismograms)
+  subroutine get_seismograms_single(GF, sources, superseismograms)
 
     use gf, only: t_GF
     use sources, only: t_source
     use stf, only: get_stf, stf_convolution, correct_hdur
     ! use interpolation, only: interpolateMT
+    use interpolate_seismograms, only: interpolate_source
     use source_location, only: locate_sources
     use constants, only: IMAIN, DEBUG
 
@@ -387,7 +394,7 @@ contains
     enddo
 
 
-  end subroutine get_seismograms
+  end subroutine get_seismograms_single
 
 
 
@@ -426,7 +433,7 @@ contains
     sources = read_cmt(source_filename)
 
     ! Extract seismograms
-    call get_seismograms(GF, sources, seismograms)
+    call get_seismograms_single(GF, sources, seismograms)
 
     do k=1,size(GF%displacement,1)
 
@@ -697,4 +704,4 @@ contains
   ! end subroutine get_all_seismograms
 
 
-end submodule seismograms
+end module seismograms

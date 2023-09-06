@@ -1,4 +1,4 @@
-submodule (gf3d) seismograms_windows
+module seismograms_windows
 ! This submodule is modeled after the the function call that Göran sent me a
 ! while back I have to of course change some things due to the way it is
 ! implemented, but in all in all it should work well with the CMT software.
@@ -36,6 +36,10 @@ submodule (gf3d) seismograms_windows
 !      pdarray (index 7-10)
 
   implicit none
+
+  private
+  public :: get_seismograms_winsta, write_seismograms_winsta
+
 contains
 
   module subroutine get_seismograms_winsta(&
@@ -74,7 +78,7 @@ contains
     integer, intent(in) :: itf
 
     ! Local
-    integer :: isource, i, j, k, iglob, istat
+    integer :: isource, i, j, k, iglob
     double precision :: t0_stf, tc_stf, hdur_diff
     double precision, dimension(:), allocatable :: t, stf
     double precision, dimension(:), allocatable :: tq
@@ -264,4 +268,4 @@ contains
   end subroutine write_seismograms_winsta
 
 
-end submodule seismograms_windows
+end module seismograms_windows
