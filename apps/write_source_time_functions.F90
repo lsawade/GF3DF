@@ -4,8 +4,7 @@ program write_source_time_functions
 !
 
   use gf3d, only: write_output_SAC
-  use gf3d, only: get_stf
-  use gf3d, only: nextpower2
+  use gf3d, only: get_stf, nextpower2
   use fftpack, only: fft, ifft, rk
 
   ! variable name
