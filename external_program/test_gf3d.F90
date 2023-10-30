@@ -16,7 +16,7 @@ program get_sdp
 
 
   use gf3d, only: get_seismograms, get_args, throwerror, init_log, finalize_log, &
-                  t_source, t_GF, read_GF, setup_point_search_arrays
+                  t_source, t_GF, read_GF
 
   ! Command line args
   character(len=256) :: hdf5_filename
