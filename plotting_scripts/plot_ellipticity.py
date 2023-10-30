@@ -279,7 +279,10 @@ figure(figsize=(8, 4))
 
 ax1 = subplot(2, 1, 1)
 # plot(6371-r*6371, epsilonval)
+# deps = np.gradient(ellipticity_dat[:, 1], ellipticity_dat[:, 0])
 plot(6371-ellipticity_dat[:, 0], ellipticity_dat[:, 1], 'k')
+plot(6371-ellipticity_dat[:, 0],
+     np.gradient(ellipticity_dat[:, 1], ellipticity_dat[:, 0]), 'k', label="gradient")
 plot_boundaries(ax1, yoffset=0.00395, label=True)
 xlim(0, 6371)
 ylim(0.002, 0.004)
@@ -311,3 +314,9 @@ xlabel('Radius $r[i-1]$/$R_{E}$')
 ylabel('Normalized values')
 
 legend(frameon=False, ncol=1, loc='center left')
+
+
+deps = np.gradient(ellipticity_dat[:, 1], ellipticity_dat[:, 0])
+non_nan = np.logical_not(np.isnan(deps))
+np.savetxt('ellipticity_grad.dat', np.column_stack(
+    (ellipticity_dat[:, 0],  ellipticity_dat[:, 1], deps)), fmt='%g')
