@@ -38,6 +38,7 @@ add_executable(gf3df-write-stf write_source_time_functions.F90)
 target_link_libraries(
     gf3df-write-stf
     gf3d
+    fftpack
 )
 
 

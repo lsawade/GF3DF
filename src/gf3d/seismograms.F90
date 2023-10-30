@@ -41,7 +41,7 @@ contains
     ! In
     type(t_GF), intent(in) :: GF
     type(t_source), dimension(1), intent(inout) :: sources
-    integer :: itypsokern
+    integer, intent(in) :: itypsokern
 
     ! Local
     integer :: i, j, k, iglob, Ndp

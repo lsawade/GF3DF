@@ -49,6 +49,7 @@ contains
     implicit none
 
     ! IN
+    integer(kind=8), intent(in) :: NT
     double precision, dimension(NT), intent(in) :: seismogram
     double precision, intent(in) :: t0, DT
 
@@ -64,7 +65,6 @@ contains
     character(len=4), intent(in) :: chn
     integer, intent(in) :: iorientation
     double precision :: stlat, stlon, stele, stbur
-    integer(kind=8) :: NT
 
     ! Event parameters
     character(len=*) :: event_name

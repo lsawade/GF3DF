@@ -22,13 +22,13 @@ module gf3d
     get_seismograms, &
     write_seismograms, &
     write_seismograms_winsta, &
-    setup_point_search_arrays, &
+    ! setup_point_search_arrays, &
     get_args, throwerror, nextpower2, &
     get_stf, &
     write_output_SAC, &
     interp1d, spline1d,  &
-    init_log, finalize_log, &
-    fftpack
+    init_log, finalize_log
+    ! fftpack
 
   ! interface interpolate_source
   !   module subroutine interpolate_source(GF, source, seismograms)
@@ -43,6 +43,7 @@ module gf3d
 
   ! Get seismograms interface
   interface get_seismograms
+
     ! Simple get_seismograms usage
     module subroutine get_seismograms(GF, sources, superseismograms)
       use gf, only: t_GF
@@ -70,6 +71,7 @@ module gf3d
       type(t_source), dimension(1), intent(inout) :: sources ! Sources are located
       double precision, dimension(:,:,:), allocatable, intent(out) :: synt
       double precision, dimension(:,:,:,:), allocatable, intent(out) :: dp
+      integer, intent(in) :: itypsokern
 
     end subroutine
 
