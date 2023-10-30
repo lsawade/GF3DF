@@ -34,8 +34,8 @@ module gf
     real(kind=8)                   :: resolution_topo_file = 0
     character(len=8), dimension(:), allocatable  :: networks
     character(len=32), dimension(:), allocatable  :: stations
-    real(kind=8),     dimension(:), allocatable  :: latitudes, longitudes
-    real(kind=8),     dimension(:), allocatable  :: burials
+    real(kind=4),     dimension(:), allocatable  :: latitudes, longitudes
+    real(kind=4),     dimension(:), allocatable  :: burials
 
     ! Interpolation points, weights, values, and derivatives
     double precision, dimension(:), allocatable :: xigll, yigll, zigll

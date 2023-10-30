@@ -51,17 +51,13 @@ target_link_libraries(
 add_executable(make-ellipticity make_ellipticity.F90)
 
 
-# add_executable(readgf hdf5_read.F90)
+add_executable(readgf hdf5_read.F90)
 
-# #the name of the external library located in /home/path/lib/libdir/lib is    libexternlib.so
-# target_link_libraries(
-#     readgf
-#     gf3d
-#     utils
-#     ctypes
-#     hdf5_utils
-#     hdf5_fortran-shared
-# )
+#the name of the external library located in /home/path/lib/libdir/lib is    libexternlib.so
+target_link_libraries(
+    readgf
+    gf3d
+)
 
 # add_executable(gf3d-locate-source locate_source.F90)
 # target_link_libraries(

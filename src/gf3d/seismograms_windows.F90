@@ -247,10 +247,10 @@ contains
         sources(1)%hdur, &
         station, &
         network, &
-        GF%latitudes(istat), &
-        GF%longitudes(istat), &
+        real(GF%latitudes(istat), kind=8), &
+        real(GF%longitudes(istat), kind=8), &
         dble(0.0), &
-        GF%burials(istat), &
+        real(GF%burials(istat), kind=8), &
         dt, &
         dble(0.0), &
         int(itf-it0, kind=8), &

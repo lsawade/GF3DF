@@ -12,6 +12,7 @@ module hdf5_utils
      module procedure &
           get_dset_rank, &
           get_dset_dims, &
+          read_real4_array_1d, &
           read_real4_array_2d, &
           read_real8, &
           read_real8_array_1d, &
@@ -316,6 +317,52 @@ contains
 
     if (error /= 0) got = .false.
   end subroutine read_integer_long
+
+  subroutine read_real4_array_1d(x, name, id, got, error)
+
+    real(kind=4),    intent(out) :: x(:)
+    character(*),    intent(in)  :: name
+    integer(hid_t),  intent(in)  :: id
+    logical,         intent(out) :: got
+    integer,         intent(out) :: error
+
+    integer, parameter :: ndims = 1
+    integer(hsize_t)   :: xshape(ndims)
+    integer(hid_t)     :: dset_id
+    integer(hid_t)     :: dtype_id
+
+    xshape = shape(x)
+
+    ! check if dataset exists
+    call h5lexists_f(id, name, got, error)
+    if (.not.got) return
+
+    ! open dataset
+    call h5dopen_f(id, name, dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot open hdf5 dataset",/)')
+      return
+    endif
+
+    ! Get dtype
+    dtype_id = get_native_dtype(dset_id, name)
+
+    ! read dataset
+    call h5dread_f(dset_id, dtype_id, x, xshape, error)
+    if (error /= 0) then
+      write(*,'("cannot read hdf5 dataset",/)')
+      return
+    endif
+
+    ! close dataset
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) then
+      write(*,'("cannot close hdf5 dataset",/)')
+      return
+    endif
+
+    if (error /= 0) got = .false.
+  end subroutine read_real4_array_1d
 
   subroutine read_real4_array_2d(x, name, id, got, error)
 

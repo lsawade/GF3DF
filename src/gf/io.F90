@@ -248,6 +248,15 @@ contains
     call read_from_hdf5(GF%networks, name_networks, file_id, got, errorflag)
     call throwerror(errorflag, "Error Reading networks")
 
+    ! Reading latitude, longitude, and burial
+    call read_from_hdf5(GF%latitudes, name_latitudes, file_id, got, errorflag)
+    call throwerror(errorflag, "Error Reading latitudes")
+
+    call read_from_hdf5(GF%longitudes, name_longitudes, file_id, got, errorflag)
+    call throwerror(errorflag, "Error Reading longitudes")
+
+    call read_from_hdf5(GF%burials, name_burials, file_id, got, errorflag)
+    call throwerror(errorflag, "Error Reading burials")
 
     ! Finally define a midpoint number on the fly.
     GF%midx = GF%ngllx / 2 + 1

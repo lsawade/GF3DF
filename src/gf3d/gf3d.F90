@@ -17,7 +17,7 @@ module gf3d
 
   private
   public :: &
-    t_GF, read_GF, print_GF, &
+    t_GF, read_GF, print_GF, free_GF, &
     t_source, read_cmt, print_source, &
     get_seismograms, &
     write_seismograms, &

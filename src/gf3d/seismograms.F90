@@ -454,10 +454,10 @@ contains
           sources(1)%hdur, &
           GF%stations(k), &
           GF%networks(k), &
-          GF%latitudes(k), &
-          GF%longitudes(k), &
+          real(GF%latitudes(k), kind=8), &
+          real(GF%longitudes(k), kind=8), &
           dble(0.0), &
-          GF%burials(k), &
+          real(GF%burials(k), kind=8), &
           GF%dt, &
           dble(0.0), &
           GF%nsteps, &
@@ -551,10 +551,10 @@ contains
           sources(1)%hdur, &
           GF%stations(k), &
           GF%networks(k), &
-          GF%latitudes(k), &
-          GF%longitudes(k), &
+          real(GF%latitudes(k), kind=8), &
+          real(GF%longitudes(k), kind=8), &
           dble(0.0), &
-          GF%burials(k), &
+          real(GF%burials(k), kind=8), &
           GF%dt, &
           dble(0.0), &
           GF%nsteps, &
@@ -590,10 +590,10 @@ contains
             sources(1)%hdur, &
             GF%stations(k), &
             GF%networks(k), &
-            GF%latitudes(k), &
-            GF%longitudes(k), &
+            real(GF%latitudes(k), kind=8), &
+            real(GF%longitudes(k), kind=8), &
             dble(0.0), &
-            GF%burials(k), &
+            real(GF%burials(k), kind=8), &
             GF%dt, &
             dble(0.0), &
             GF%nsteps, &
